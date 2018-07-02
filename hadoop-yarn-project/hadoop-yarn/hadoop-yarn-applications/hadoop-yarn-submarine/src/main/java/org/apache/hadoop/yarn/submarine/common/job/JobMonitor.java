@@ -16,7 +16,7 @@ package org.apache.hadoop.yarn.submarine.common.job;
 
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
-import org.apache.hadoop.yarn.submarine.common.api.SubmarineJobStatus;
+import org.apache.hadoop.yarn.submarine.common.api.JobStatus;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.api.records.Service;
 import org.apache.hadoop.yarn.service.api.records.ServiceState;
@@ -30,15 +30,15 @@ import java.io.IOException;
 public class JobMonitor {
   /**
    * Returns status of training job.
-   * @return SubmarineJobStatus
+   * @return JobStatus
    */
-  public SubmarineJobStatus getTrainingJobStatus(String jobName, ClientContext clientContext)
+  public JobStatus getTrainingJobStatus(String jobName, ClientContext clientContext)
       throws IOException, YarnException {
     ServiceClient serviceClient = clientContext.getServiceClient();
     Service serviceSpec = serviceClient.getStatus(jobName);
-    SubmarineJobStatus submarineJobStatus = SubmarineJobStatus.fromServiceSepc(serviceSpec,
+    JobStatus jobStatus = JobStatus.fromServiceSepc(serviceSpec,
         clientContext);
-    return submarineJobStatus;
+    return jobStatus;
   }
 
   /**
@@ -55,7 +55,7 @@ public class JobMonitor {
 
     // Wait 15 sec between each fetch.
     int waitSec = 15;
-    SubmarineJobStatus js;
+    JobStatus js;
     while (true) {
       js = getTrainingJobStatus(jobName, clientContext);
       ServiceState jobState = js.getState();
