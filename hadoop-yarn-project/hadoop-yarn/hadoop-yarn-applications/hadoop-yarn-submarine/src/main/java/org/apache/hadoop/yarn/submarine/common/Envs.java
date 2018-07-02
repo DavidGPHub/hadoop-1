@@ -12,21 +12,16 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.client.cli;
+package org.apache.hadoop.yarn.submarine.common;
 
-import org.apache.commons.cli.ParseException;
-import org.apache.hadoop.yarn.submarine.common.ClientContext;
-import org.apache.hadoop.yarn.exceptions.YarnException;
+public class Envs {
+  public static final String TASK_TYPE_ENV = "_TASK_TYPE";
+  public static final String TASK_INDEX_ENV = "_TASK_INDEX";
 
-import java.io.IOException;
-
-public abstract class AbstractCli {
-  protected ClientContext clientContext;
-
-  public AbstractCli(ClientContext cliContext) {
-    this.clientContext = cliContext;
-  }
-
-  public abstract void run(String[] args)
-      throws ParseException, IOException, YarnException, InterruptedException;
+  /*
+   * HDFS-related configs
+   */
+  public static final String HADOOP_HDFS_HOME = "HADOOP_HDFS_HOME";
+  public static final String JAVA_HOME = "JAVA_HOME";
+  public static final String HADOOP_CONF_DIR = "HADOOP_CONF_DIR";
 }

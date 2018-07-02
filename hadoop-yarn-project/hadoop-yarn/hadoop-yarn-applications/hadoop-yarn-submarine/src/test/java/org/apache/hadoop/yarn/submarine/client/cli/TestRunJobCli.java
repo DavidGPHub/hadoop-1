@@ -18,8 +18,8 @@
 
 package org.apache.hadoop.yarn.submarine.client.cli;
 
-import org.apache.hadoop.yarn.submarine.client.common.Constants;
-import org.apache.hadoop.yarn.submarine.client.common.MockClientContext;
+import org.apache.hadoop.yarn.submarine.common.Constants;
+import org.apache.hadoop.yarn.submarine.common.MockClientContext;
 import org.apache.hadoop.yarn.service.api.records.Component;
 import org.apache.hadoop.yarn.service.api.records.Service;
 import org.junit.Assert;

@@ -15,8 +15,8 @@
 package org.apache.hadoop.yarn.submarine.client.cli;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.submarine.client.common.ClientContext;
-import org.apache.hadoop.yarn.submarine.client.common.fs.DefaultRemoteDirectoryManager;
+import org.apache.hadoop.yarn.submarine.common.ClientContext;
+import org.apache.hadoop.yarn.submarine.common.fs.DefaultRemoteDirectoryManager;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
 import java.util.Arrays;

@@ -19,9 +19,9 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.hadoop.yarn.submarine.client.job.JobSubmitter;
-import org.apache.hadoop.yarn.submarine.client.common.ClientContext;
-import org.apache.hadoop.yarn.submarine.client.common.param.JobRunParameters;
+import org.apache.hadoop.yarn.submarine.common.job.JobSubmitter;
+import org.apache.hadoop.yarn.submarine.common.ClientContext;
+import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.api.records.Service;
 import org.slf4j.Logger;
@@ -52,15 +52,15 @@ public class RunJobCli extends AbstractCli{
   private Options generateOptions() {
     Options options = new Options();
     options.addOption(CliConstants.NAME, true, "Name of the job");
-    options.addOption(CliConstants.INPUT, true,
+    options.addOption(CliConstants.INPUT_PATH, true,
         "Input of the job, could be local or other FS directory");
-    options.addOption(CliConstants.JOB_DIR, true,
+    options.addOption(CliConstants.CHECKPOINT_PATH, true,
         "Training output directory of the job, "
             + "could be local or other FS directory. This typically includes "
             + "checkpoint files and exported model ");
-    options.addOption(CliConstants.SAVEDMODEL_PATH, true,
+    options.addOption(CliConstants.SAVED_MODEL_PATH, true,
         "Model exported path (savedmodel) of the job, which is needed when "
-            + "exported model is not placed under ${job_dir}"
+            + "exported model is not placed under ${checkpoint_path}"
             + "could be local or other FS directory. This will be used to serve.");
     options.addOption(CliConstants.N_WORKERS, true,
         "Numnber of worker tasks of the job, by default it's 1");

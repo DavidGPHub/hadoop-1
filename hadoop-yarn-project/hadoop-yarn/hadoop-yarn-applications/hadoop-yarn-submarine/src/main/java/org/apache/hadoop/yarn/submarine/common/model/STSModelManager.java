@@ -12,21 +12,17 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.client.cli;
+package org.apache.hadoop.yarn.submarine.common.model;
 
-import org.apache.commons.cli.ParseException;
-import org.apache.hadoop.yarn.submarine.common.ClientContext;
-import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.hadoop.yarn.submarine.client.cli.param.ModelServeParameters;
 
-import java.io.IOException;
+/**
+ * Model manager by using implementation of
+ * https://github.com/tobegit3hub/simple_tensorflow_serving
+ */
+public class STSModelManager extends ModelManager {
+  @Override
+  public void serveModel(ModelServeParameters parameters) {
 
-public abstract class AbstractCli {
-  protected ClientContext clientContext;
-
-  public AbstractCli(ClientContext cliContext) {
-    this.clientContext = cliContext;
   }
-
-  public abstract void run(String[] args)
-      throws ParseException, IOException, YarnException, InterruptedException;
 }

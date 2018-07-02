@@ -20,11 +20,11 @@ package org.apache.hadoop.yarn.submarine.client.cli;
 public class CliConstants {
   public static final String RUN = "run";
   public static final String SERVE = "serve";
-  public static final String LS = "ls";
+  public static final String LIST = "list";
   public static final String NAME = "name";
-  public static final String INPUT = "input";
-  public static final String JOB_DIR = "job_dir";
-  public static final String SAVEDMODEL_PATH = "savedmodel_path";
+  public static final String INPUT_PATH = "input_path";
+  public static final String CHECKPOINT_PATH = "checkpoint_path";
+  public static final String SAVED_MODEL_PATH = "saved_model_path";
   public static final String N_WORKERS = "num_workers";
   public static final String N_SERVING_TASKS = "num_serving_tasks";
   public static final String N_PS = "num_ps";

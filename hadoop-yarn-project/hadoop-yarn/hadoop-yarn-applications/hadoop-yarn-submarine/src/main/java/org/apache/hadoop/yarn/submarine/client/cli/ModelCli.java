@@ -19,10 +19,10 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.submarine.client.common.ClientContext;
-import org.apache.hadoop.yarn.submarine.client.common.param.ModelServeParameters;
-import org.apache.hadoop.yarn.submarine.client.model.ModelManager;
-import org.apache.hadoop.yarn.submarine.client.model.ModelManagerFactory;
+import org.apache.hadoop.yarn.submarine.common.ClientContext;
+import org.apache.hadoop.yarn.submarine.client.cli.param.ModelServeParameters;
+import org.apache.hadoop.yarn.submarine.common.model.ModelManager;
+import org.apache.hadoop.yarn.submarine.common.model.ModelManagerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -37,7 +37,7 @@ public class ModelCli extends AbstractCli {
   private static Options generateOptions() {
     Options options = new Options();
     options.addOption(CliConstants.NAME, true, "Name of the model serving job");
-    options.addOption(CliConstants.SAVEDMODEL_PATH, true,
+    options.addOption(CliConstants.SAVED_MODEL_PATH, true,
         "Model exported path (savedmodel) of the job, which is needed when "
             + "exported model is not placed under ${job_dir}"
             + "could be local or other FS directory. This will be used to serve.");

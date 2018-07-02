@@ -12,21 +12,23 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.client.cli;
+package org.apache.hadoop.yarn.submarine.common.model;
 
-import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
-import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.hadoop.yarn.submarine.client.cli.param.ModelServeParameters;
 
-import java.io.IOException;
-
-public abstract class AbstractCli {
+/**
+ * Class to manage models in a cluster, including model serving / delete / list
+ * , etc.
+ */
+public abstract class ModelManager {
   protected ClientContext clientContext;
 
-  public AbstractCli(ClientContext cliContext) {
-    this.clientContext = cliContext;
+  public void initialize(ClientContext clientContext) {
+    this.clientContext = clientContext;
   }
 
-  public abstract void run(String[] args)
-      throws ParseException, IOException, YarnException, InterruptedException;
+  public abstract void serveModel(ModelServeParameters parameters);
+
+  // More actions can add here such as remove / list model.
 }
