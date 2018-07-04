@@ -30,7 +30,7 @@ public class DefaultRemoteDirectoryManager implements RemoteDirectoryManager {
 
   public DefaultRemoteDirectoryManager(ClientContext context) {
     try {
-      this.fs = FileSystem.get(context.getConfiguration());
+      this.fs = FileSystem.get(context.getYarnConfig());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

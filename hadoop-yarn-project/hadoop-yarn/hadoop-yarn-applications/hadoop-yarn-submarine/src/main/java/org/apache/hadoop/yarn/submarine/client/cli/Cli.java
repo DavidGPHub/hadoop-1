@@ -18,10 +18,15 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.fs.DefaultRemoteDirectoryManager;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 
 public class Cli {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(Cli.class);
+
   private static void printHelp() {
     // TODO;
   }
@@ -37,9 +42,9 @@ public class Cli {
 
   public static void main(String[] args) throws Exception {
     if (args.length < 2) {
+      LOG.error("Bad parameters specified.");
       printHelp();
-      // TODO
-      throw new IllegalArgumentException("Bad parameters <TODO>");
+      System.exit(-1);
     }
 
     String[] moduleArgs = Arrays.copyOfRange(args, 2, args.length);

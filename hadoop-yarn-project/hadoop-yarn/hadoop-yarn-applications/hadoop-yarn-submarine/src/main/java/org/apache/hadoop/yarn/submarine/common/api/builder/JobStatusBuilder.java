@@ -31,8 +31,7 @@ import java.util.List;
 import static org.apache.hadoop.yarn.submarine.common.Constants.WORKER_COMPONENT_NAME;
 
 public class JobStatusBuilder {
-  public static JobStatus fromServiceSepc(Service serviceSpec,
-      ClientContext clientContext) {
+  public static JobStatus fromServiceSpec(Service serviceSpec) {
     JobStatus status = new JobStatus();
     status.setState(fromServiceState(serviceSpec.getState()));
 
@@ -49,6 +48,7 @@ public class JobStatusBuilder {
     }
     status.setComponentStatus(componentStatusList);
 
+    // TODO, handle tensorboard differently.
     status.setTensorboardLink(getTensorboardLink(serviceSpec, clientContext));
 
     status.setJobName(serviceSpec.getName());

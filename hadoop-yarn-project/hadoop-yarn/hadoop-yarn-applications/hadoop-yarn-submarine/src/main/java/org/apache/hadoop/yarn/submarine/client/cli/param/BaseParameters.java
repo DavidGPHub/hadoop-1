@@ -20,6 +20,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.submarine.client.cli.CliConstants;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
+import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
 
 import java.io.IOException;
 
@@ -40,11 +41,10 @@ public abstract class BaseParameters {
       throw new ParseException("--name is absent");
     }
 
-    boolean verbose = false;
     if (parsedCommandLine.hasOption(CliConstants.VERBOSE)) {
-      verbose = true;
+      SubmarineLogs.verboseOn();
     }
-    clientContext.setVerbose(verbose);
+
     this.setName(name);
   }
 

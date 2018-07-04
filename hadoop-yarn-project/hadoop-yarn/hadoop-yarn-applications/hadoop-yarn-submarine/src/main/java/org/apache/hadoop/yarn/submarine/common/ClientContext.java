@@ -15,55 +15,39 @@
 package org.apache.hadoop.yarn.submarine.common;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.submarine.common.conf.SubmarineConfiguration;
 import org.apache.hadoop.yarn.submarine.common.fs.RemoteDirectoryManager;
-import org.apache.hadoop.yarn.submarine.common.network.RandomTaskNetworkPortManagerImpl;
-import org.apache.hadoop.yarn.submarine.common.network.TaskNetworkPortManager;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
-import org.apache.hadoop.yarn.submarine.common.job.JobMonitor;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 public class ClientContext {
-  private Configuration conf = new YarnConfiguration();
+  private Configuration yarnConf = new YarnConfiguration();
 
   private RemoteDirectoryManager remoteDirectoryManager;
-  private TaskNetworkPortManager taskNetworkPortManager;
   private YarnClient yarnClient;
   private ServiceClient serviceClient;
-  private Map<String, JobRunParameters> cachedRunJobParameters =
-      new ConcurrentHashMap<>();
-  private JobMonitor jobMonitor;
-  private boolean verbose;
+  private SubmarineConfiguration submarineConfig;
 
   public ClientContext() {
-    this.taskNetworkPortManager =
-        new RandomTaskNetworkPortManagerImpl();
-    this.jobMonitor = new JobMonitor();
+    submarineConfig = new SubmarineConfiguration();
   }
 
   public synchronized YarnClient getOrCreateYarnClient() {
     if (yarnClient == null) {
       yarnClient = YarnClient.createYarnClient();
-      yarnClient.init(conf);
+      yarnClient.init(yarnConf);
       yarnClient.start();
     }
     return yarnClient;
   }
 
-  public Configuration getConfiguration() {
-    return conf;
+  public Configuration getYarnConfig() {
+    return yarnConf;
   }
 
   public void setConfiguration(Configuration conf) {
-    this.conf = conf;
-  }
-
-  public TaskNetworkPortManager getTaskNetworkPortManager() {
-    return taskNetworkPortManager;
+    this.yarnConf = conf;
   }
 
   public RemoteDirectoryManager getRemoteDirectoryManager() {
@@ -78,30 +62,17 @@ public class ClientContext {
   public synchronized ServiceClient getServiceClient() {
     if (serviceClient == null) {
       serviceClient = new ServiceClient();
-      serviceClient.init(conf);
+      serviceClient.init(yarnConf);
       serviceClient.start();
     }
     return serviceClient;
   }
 
-  public JobRunParameters getRunJobParameters(String jobName) {
-    return cachedRunJobParameters.get(jobName);
+  public SubmarineConfiguration getSubmarineConfig() {
+    return submarineConfig;
   }
 
-  public void addRunJobParameters(String jobName, JobRunParameters parameters) {
-    cachedRunJobParameters.put(jobName, parameters);
-  }
-
-  public JobMonitor getJobMonitor() {
-    return jobMonitor;
-  }
-
-
-  public boolean isVerbose() {
-    return verbose;
-  }
-
-  public void setVerbose(boolean verbose) {
-    this.verbose = verbose;
+  public void setSubmarineConfig(SubmarineConfiguration submarineConfig) {
+    this.submarineConfig = submarineConfig;
   }
 }

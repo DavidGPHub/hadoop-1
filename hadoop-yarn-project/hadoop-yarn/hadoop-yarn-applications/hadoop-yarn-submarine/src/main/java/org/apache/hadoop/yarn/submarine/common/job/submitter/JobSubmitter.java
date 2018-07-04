@@ -12,23 +12,23 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.client.cli;
+package org.apache.hadoop.yarn.submarine.common.job.submitter;
 
-import org.apache.commons.cli.ParseException;
-import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
+import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 
 import java.io.IOException;
 
-public abstract class AbstractCli {
-  protected ClientContext clientContext;
-
-  public AbstractCli(ClientContext cliContext) {
-    this.clientContext = cliContext;
-  }
-
-  public abstract void run(String[] args)
-      throws ParseException, IOException, YarnException, InterruptedException,
-      SubmarineException;
+/**
+ * Submit job to cluster master
+ */
+public interface JobSubmitter {
+  /**
+   * Submit job to cluster
+   * @param parameters run job parameters
+   * @throws YarnException for issues while contacting YARN daemons
+   * @throws IOException for other issues.
+   */
+  void submitJob(JobRunParameters parameters)
+      throws IOException, YarnException;
 }

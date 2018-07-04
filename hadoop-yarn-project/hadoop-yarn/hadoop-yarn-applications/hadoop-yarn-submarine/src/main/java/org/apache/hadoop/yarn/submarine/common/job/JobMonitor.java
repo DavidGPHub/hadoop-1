@@ -15,12 +15,14 @@
 package org.apache.hadoop.yarn.submarine.common.job;
 
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
+import org.apache.hadoop.yarn.submarine.common.api.JobState;
 import org.apache.hadoop.yarn.submarine.common.api.JobStatus;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.api.records.Service;
-import org.apache.hadoop.yarn.service.api.records.ServiceState;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
+import org.apache.hadoop.yarn.submarine.common.api.builder.JobStatusBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -28,6 +30,8 @@ import java.io.IOException;
  * Monitor status of job
  */
 public class JobMonitor {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(JobMonitor.class);
   /**
    * Returns status of training job.
    * @return JobStatus
@@ -36,8 +40,7 @@ public class JobMonitor {
       throws IOException, YarnException {
     ServiceClient serviceClient = clientContext.getServiceClient();
     Service serviceSpec = serviceClient.getStatus(jobName);
-    JobStatus jobStatus = JobStatus.fromServiceSepc(serviceSpec,
-        clientContext);
+    JobStatus jobStatus = JobStatusBuilder.fromServiceSpec(serviceSpec);
     return jobStatus;
   }
 
@@ -50,31 +53,25 @@ public class JobMonitor {
    */
   public void waitTrainingJobReadyOrFinal(String jobName,
       ClientContext clientContext)
-      throws IOException, YarnException, InterruptedException {
-    JobRunParameters parameters = clientContext.getRunJobParameters(jobName);
-
-    // Wait 15 sec between each fetch.
-    int waitSec = 15;
+      throws IOException, YarnException {
+    // Wait 5 sec between each fetch.
+    int waitSec = 5;
     JobStatus js;
     while (true) {
       js = getTrainingJobStatus(jobName, clientContext);
-      ServiceState jobState = js.getState();
+      JobState jobState = js.getState();
       js.nicePrint(System.err);
 
-      if (jobState == ServiceState.FAILED || jobState == ServiceState.STOPPED) {
+      if (JobState.isFinal(jobState)) {
+        LOG.info("Job exited with state=" + jobState);
         break;
       }
 
-      if (parameters.isTensorboardEnabled()) {
-        if (js.getTensorboardLink().startsWith("http")
-            && jobState == ServiceState.STABLE) {
-          break;
-        }
-      } else if (jobState == ServiceState.STABLE) {
-        break;
+      try {
+        Thread.sleep(waitSec * 1000);
+      } catch (InterruptedException e) {
+        throw new IOException(e);
       }
-
-      Thread.sleep(waitSec * 1000);
     }
   }
 }

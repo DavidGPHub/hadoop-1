@@ -19,7 +19,10 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.hadoop.yarn.submarine.common.job.JobSubmitter;
+import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
+import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitter;
+import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitterFactory;
+import org.apache.hadoop.yarn.submarine.common.job.submitter.YarnServiceJobSubmitter;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.exceptions.YarnException;
@@ -31,14 +34,14 @@ import java.io.IOException;
 
 import static org.apache.hadoop.yarn.service.utils.ServiceApiUtil.jsonSerDeser;
 
-public class RunJobCli extends AbstractCli{
+public class RunJobCli extends AbstractCli {
   private static final Logger LOG =
       LoggerFactory.getLogger(RunJobCli.class);
 
   private Options options;
-  private Service serviceSpec;
-
   private JobRunParameters parameters = new JobRunParameters();
+
+  private JobSubmitter jobSubmitter;
 
   public RunJobCli(ClientContext cliContext) {
     super(cliContext);
@@ -100,30 +103,22 @@ public class RunJobCli extends AbstractCli{
 
   @Override
   public void run(String[] args)
-      throws ParseException, IOException, YarnException, InterruptedException {
+      throws ParseException, IOException, YarnException, InterruptedException,
+      SubmarineException {
     parseCommandLineAndGetRunJobParameters(args);
 
-    clientContext.addRunJobParameters(parameters.getName(), parameters);
-
-    JobSubmitter jobSubmitter = new JobSubmitter(clientContext);
-    serviceSpec = jobSubmitter.runJob(parameters);
-
-    if (clientContext.isVerbose()) {
-      LOG.info("Service Spec:");
-      LOG.info(jsonSerDeser.toJson(serviceSpec));
-    }
-
-    clientContext.getJobMonitor().waitTrainingJobReadyOrFinal(
-        parameters.getName(), clientContext);
+    this.jobSubmitter = JobSubmitterFactory.createJobSubmitter(
+        clientContext);
+    this.jobSubmitter.submitJob(parameters);
   }
 
   @VisibleForTesting
-  Service getServiceSpec() {
-    return serviceSpec;
+  JobSubmitter getJobSubmitter() {
+    return jobSubmitter;
   }
 
   @VisibleForTesting
-  public JobRunParameters getRunJobParameters() {
+  JobRunParameters getRunJobParameters() {
     return parameters;
   }
 }

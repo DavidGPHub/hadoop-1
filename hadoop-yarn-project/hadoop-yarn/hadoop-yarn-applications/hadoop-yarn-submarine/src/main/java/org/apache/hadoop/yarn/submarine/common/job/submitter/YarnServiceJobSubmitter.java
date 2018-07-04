@@ -12,17 +12,11 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.common.job;
+package org.apache.hadoop.yarn.submarine.common.job.submitter;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.yarn.submarine.client.cli.CliUtils;
-import org.apache.hadoop.yarn.submarine.common.ClientContext;
-import org.apache.hadoop.yarn.submarine.common.Constants;
-import org.apache.hadoop.yarn.submarine.common.Envs;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
-import org.apache.hadoop.yarn.submarine.common.api.TaskType;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.api.ServiceApiConstants;
 import org.apache.hadoop.yarn.service.api.records.Artifact;
@@ -32,6 +26,14 @@ import org.apache.hadoop.yarn.service.api.records.Resource;
 import org.apache.hadoop.yarn.service.api.records.ResourceInformation;
 import org.apache.hadoop.yarn.service.api.records.Service;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
+import org.apache.hadoop.yarn.submarine.client.cli.CliUtils;
+import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
+import org.apache.hadoop.yarn.submarine.common.ClientContext;
+import org.apache.hadoop.yarn.submarine.common.Constants;
+import org.apache.hadoop.yarn.submarine.common.Envs;
+import org.apache.hadoop.yarn.submarine.common.api.TaskType;
+import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
+import org.apache.hadoop.yarn.submarine.common.job.JobMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,12 +48,12 @@ import static org.apache.hadoop.yarn.service.api.records.ConfigFile.TypeEnum.YAM
 /**
  * Submit a job to cluster
  */
-public class JobSubmitter {
+public class YarnServiceJobSubmitter implements JobSubmitter {
   private static final Logger LOG =
-      LoggerFactory.getLogger(JobSubmitter.class);
+      LoggerFactory.getLogger(YarnServiceJobSubmitter.class);
   ClientContext clientContext;
 
-  public JobSubmitter(ClientContext clientContext) {
+  public YarnServiceJobSubmitter(ClientContext clientContext) {
     this.clientContext = clientContext;
   }
 
@@ -162,7 +164,7 @@ public class JobSubmitter {
 
       fw.append(afterReplace + '\n');
 
-      if (clientContext.isVerbose()) {
+      if (SubmarineLogs.isVerbose()) {
         LOG.info("Worker command before commandline replace=[" + parameters
             .getWorkerLaunchCmd() + "] after replace=[" + afterReplace + "]");
       }
@@ -173,7 +175,7 @@ public class JobSubmitter {
           parameters.getPSLaunchCmd(), parameters,
           clientContext.getRemoteDirectoryManager());
 
-      if (clientContext.isVerbose()) {
+      if (SubmarineLogs.isVerbose()) {
         LOG.info("PS command before commandline replace=[" + parameters
             .getPSLaunchCmd() + "] after replace=[" + afterReplace + "]");
       }
@@ -200,7 +202,7 @@ public class JobSubmitter {
 
     // Generate script file in the local disk
     String localScriptFile = generateCommandLaunchScript(parameters, taskType);
-    FileSystem fs = FileSystem.get(clientContext.getConfiguration());
+    FileSystem fs = FileSystem.get(clientContext.getYarnConfig());
 
     // Upload to remote FS under staging area
     String destScriptFileName = getScriptFileName(taskType);
@@ -300,11 +302,14 @@ public class JobSubmitter {
    * @throws IOException
    * @throws YarnException
    */
-  public Service runJob(JobRunParameters parameters)
+  @Override
+  public void submitJob(JobRunParameters parameters)
       throws IOException, YarnException {
     Service service = createServiceByParameters(parameters);
     ServiceClient serviceClient = clientContext.getServiceClient();
     serviceClient.actionCreate(service);
-    return service;
+
+    JobMonitor jobMonitor = new JobMonitor();
+    jobMonitor.waitTrainingJobReadyOrFinal(parameters.getName(), clientContext);
   }
 }
