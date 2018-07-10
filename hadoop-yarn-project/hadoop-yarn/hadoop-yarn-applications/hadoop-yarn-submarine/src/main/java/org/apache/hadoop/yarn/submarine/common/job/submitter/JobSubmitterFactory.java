@@ -17,6 +17,7 @@ package org.apache.hadoop.yarn.submarine.common.job.submitter;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineConfiguration;
 import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
+import org.apache.hadoop.yarn.submarine.common.exception.SubmarineRuntimeException;
 
 /**
  * Get job Submitter by SubmarineConfiguration
@@ -29,7 +30,7 @@ public class JobSubmitterFactory {
    * @throws SubmarineException when anything bad related to Submarine happens.
    */
   public static YarnServiceJobSubmitter createJobSubmitter(
-      ClientContext clientContext) throws SubmarineException {
+      ClientContext clientContext) throws SubmarineRuntimeException {
     SubmarineConfiguration submarineConfiguration =
         clientContext.getSubmarineConfig();
 
@@ -40,6 +41,7 @@ public class JobSubmitterFactory {
       return new YarnServiceJobSubmitter(clientContext);
     }
 
-    throw new SubmarineException("Runtime = " + runtime + " is not supported");
+    throw new SubmarineRuntimeException(
+        "Runtime = " + runtime + " is not supported");
   }
 }

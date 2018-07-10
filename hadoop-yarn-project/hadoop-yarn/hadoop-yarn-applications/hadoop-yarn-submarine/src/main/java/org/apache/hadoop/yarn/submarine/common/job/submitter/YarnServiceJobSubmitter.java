@@ -14,6 +14,7 @@
 
 package org.apache.hadoop.yarn.submarine.common.job.submitter;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -52,6 +53,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
   private static final Logger LOG =
       LoggerFactory.getLogger(YarnServiceJobSubmitter.class);
   ClientContext clientContext;
+  Service serviceSpec;
 
   public YarnServiceJobSubmitter(ClientContext clientContext) {
     this.clientContext = clientContext;
@@ -98,8 +100,8 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
       }
     }
 
-    if ((parameters.getInput() != null && parameters.getInput().contains(
-        "hdfs://")) || (parameters.getJobDir() != null && parameters.getJobDir()
+    if ((parameters.getInputPath() != null && parameters.getInputPath().contains(
+        "hdfs://")) || (parameters.getCheckpointPath() != null && parameters.getCheckpointPath()
         .contains("hdfs://")) || hadoopEnv) {
       // HDFS is asked either in input or output, set LD_LIBRARY_PATH
       // and classpath
@@ -146,12 +148,11 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     if (taskType == TaskType.PRIMARY_WORKER) {
       // Do we need tensorboard?
       if (parameters.isTensorboardEnabled()) {
-        int tensorboardPort = clientContext.getTaskNetworkPortManager().getPort(
-            parameters.getName(), "tensorboard", 0);
+        int tensorboardPort = 6006;
         // Run tensorboard at the background
         fw.append(
             "tensorboard --port " + tensorboardPort + " --logdir " + parameters
-                .getJobDir() + " &\n");
+                .getCheckpointPath() + " &\n");
       }
     }
 
@@ -216,8 +217,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
         fileStatus.getPath().toUri().toString()).destFile(destScriptFileName)
         .type(YAML));
 
-    // TODO, file should not be automatically put to ./conf
-    component.setLaunchCommand("bash -c ./conf/" + destScriptFileName);
+    component.setLaunchCommand("bash -c " + destScriptFileName);
   }
 
   private void addCommonEnvironments(Component component, TaskType taskType) {
@@ -308,8 +308,14 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     Service service = createServiceByParameters(parameters);
     ServiceClient serviceClient = clientContext.getServiceClient();
     serviceClient.actionCreate(service);
+    this.serviceSpec = service;
 
     JobMonitor jobMonitor = new JobMonitor();
     jobMonitor.waitTrainingJobReadyOrFinal(parameters.getName(), clientContext);
+  }
+
+  @VisibleForTesting
+  public Service getServiceSpec() {
+    return serviceSpec;
   }
 }

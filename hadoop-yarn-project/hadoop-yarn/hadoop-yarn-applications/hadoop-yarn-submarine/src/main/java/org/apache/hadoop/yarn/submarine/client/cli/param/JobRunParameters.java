@@ -72,7 +72,8 @@ public class JobRunParameters extends RunParameters {
       throw new ParseException("--" + CliConstants.WORKER_RES + " is absent.");
     }
     Resource workerResource = CliUtils.createResourceFromString(
-        workerResourceStr, clientContext.getOrCreateYarnClient());
+        workerResourceStr,
+        clientContext.getOrCreateYarnClient().getResourceTypeInfo());
 
     Resource psResource = null;
     if (nPS > 0) {
@@ -82,7 +83,7 @@ public class JobRunParameters extends RunParameters {
         throw new ParseException("--" + CliConstants.PS_RES + " is absent.");
       }
       psResource = CliUtils.createResourceFromString(psResourceStr,
-          clientContext.getOrCreateYarnClient());
+          clientContext.getOrCreateYarnClient().getResourceTypeInfo());
     }
 
     boolean tensorboard = true;
@@ -105,7 +106,7 @@ public class JobRunParameters extends RunParameters {
         options, clientContext);
   }
 
-  public String getInput() {
+  public String getInputPath() {
     return input;
   }
 
@@ -114,7 +115,7 @@ public class JobRunParameters extends RunParameters {
     return this;
   }
 
-  public String getJobDir() {
+  public String getCheckpointPath() {
     return jobDir;
   }
 

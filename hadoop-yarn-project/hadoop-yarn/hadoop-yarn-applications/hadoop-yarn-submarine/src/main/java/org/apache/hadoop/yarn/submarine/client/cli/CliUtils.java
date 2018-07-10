@@ -20,7 +20,6 @@ import org.apache.hadoop.yarn.api.records.ResourceTypeInfo;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.exceptions.ResourceNotFoundException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.submarine.client.cli.CliConstants;
 import org.apache.hadoop.yarn.submarine.common.fs.RemoteDirectoryManager;
 import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.util.UnitsConversionUtil;
@@ -39,13 +38,13 @@ public class CliUtils {
   public static String replacePatternsInLaunchCommand(String specifiedCli,
       JobRunParameters jobRunParameters,
       RemoteDirectoryManager directoryManager) throws IOException {
-    String jobDir = jobRunParameters.getJobDir();
+    String jobDir = jobRunParameters.getCheckpointPath();
     if (null == jobDir) {
       jobDir = directoryManager.getAndCreateJobCheckpointDir(
           jobRunParameters.getName()).toString();
     }
 
-    String input = jobRunParameters.getInput();
+    String input = jobRunParameters.getInputPath();
     String savedModelDir = jobRunParameters.getSavedModelPath();
     if (null == savedModelDir) {
       savedModelDir = jobDir;
@@ -93,23 +92,43 @@ public class CliUtils {
       String[] splits = resource.split("=");
       String key = splits[0], value = splits[1];
       String units = ResourceUtils.getUnits(value);
+
       String valueWithoutUnit = value.substring(
           0, value.length() - units.length()).trim();
       Long resourceValue = Long.valueOf(valueWithoutUnit);
-      if (!units.isEmpty()) {
-        resourceValue = UnitsConversionUtil.convert(units, "Mi", resourceValue);
+
+      // Convert commandline unit to standard YARN unit.
+      if (units.equals("M") || units.equals("m")) {
+        units = "Mi";
+      } else if (units.equals("G") || units.equals("g")) {
+        units = "Gi";
+      } else if (units.isEmpty()) {
+        // do nothing;
+      } else {
+        throw new IllegalArgumentException("Acceptable units are M/G or empty");
       }
+
+      // special handle memory-mb and memory
+      if (key.equals(ResourceInformation.MEMORY_URI)) {
+        if (!units.isEmpty()) {
+          resourceValue = UnitsConversionUtil.convert(units, "Mi",
+              resourceValue);
+        }
+      }
+
       if (key.equals("memory")) {
         key = ResourceInformation.MEMORY_URI;
+        resourceValue = UnitsConversionUtil.convert(units, "Mi",
+            resourceValue);
       }
+
       resources.put(key, resourceValue);
     }
     return resources;
   }
 
   private static void validateResourceTypes(Iterable<String> resourceNames,
-      YarnClient yarnClient) throws IOException, YarnException {
-    List<ResourceTypeInfo> resourceTypes = yarnClient.getResourceTypeInfo();
+      List<ResourceTypeInfo> resourceTypes) throws IOException, YarnException {
     for (String resourceName : resourceNames) {
       if (!resourceTypes.stream().anyMatch(
           e -> e.getName().equals(resourceName))) {
@@ -120,9 +139,9 @@ public class CliUtils {
   }
 
   public static Resource createResourceFromString(String resourceStr,
-      YarnClient yarnClient) throws IOException, YarnException {
+      List<ResourceTypeInfo> resourceTypes) throws IOException, YarnException {
     Map<String, Long> typeToValue = parseResourcesString(resourceStr);
-    validateResourceTypes(typeToValue.keySet(), yarnClient);
+    validateResourceTypes(typeToValue.keySet(), resourceTypes);
     Resource resource = Resource.newInstance(0, 0);
     for (Map.Entry<String, Long> entry : typeToValue.entrySet()) {
       resource.setResourceValue(entry.getKey(), entry.getValue());

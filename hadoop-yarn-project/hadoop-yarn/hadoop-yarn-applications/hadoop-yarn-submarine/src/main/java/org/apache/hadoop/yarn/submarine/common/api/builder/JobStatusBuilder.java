@@ -49,38 +49,38 @@ public class JobStatusBuilder {
     status.setComponentStatus(componentStatusList);
 
     // TODO, handle tensorboard differently.
-    status.setTensorboardLink(getTensorboardLink(serviceSpec, clientContext));
+    // status.setTensorboardLink(getTensorboardLink(serviceSpec, clientContext));
 
     status.setJobName(serviceSpec.getName());
 
     return status;
   }
 
-  private static String getTensorboardLink(Service serviceSpec,
-      ClientContext clientContext) {
-    JobRunParameters jobRunParameters = clientContext.getRunJobParameters(
-        serviceSpec.getName());
-    if (jobRunParameters == null || !jobRunParameters.isTensorboardEnabled()) {
-      return null;
-    }
-
-    for (Component component : serviceSpec.getComponents()) {
-      if (component.getName().equals(WORKER_COMPONENT_NAME)) {
-        for (Container c : component.getContainers()) {
-          if (c.getComponentInstanceName().equals(WORKER_COMPONENT_NAME + "-0")
-              && (c.getState() == ContainerState.READY
-              || c.getState() == ContainerState.RUNNING_BUT_UNREADY)) {
-            String hostname = c.getHostname();
-            int port = clientContext.getTaskNetworkPortManager().getPort(
-                serviceSpec.getName(), "tensorboard", 0);
-            return "http://" + hostname + ":" + port;
-          }
-        }
-      }
-    }
-
-    return null;
-  }
+//  private static String getTensorboardLink(Service serviceSpec,
+//      ClientContext clientContext) {
+//    JobRunParameters jobRunParameters = clientContext.getRunJobParameters(
+//        serviceSpec.getName());
+//    if (jobRunParameters == null || !jobRunParameters.isTensorboardEnabled()) {
+//      return null;
+//    }
+//
+//    for (Component component : serviceSpec.getComponents()) {
+//      if (component.getName().equals(WORKER_COMPONENT_NAME)) {
+//        for (Container c : component.getContainers()) {
+//          if (c.getComponentInstanceName().equals(WORKER_COMPONENT_NAME + "-0")
+//              && (c.getState() == ContainerState.READY
+//              || c.getState() == ContainerState.RUNNING_BUT_UNREADY)) {
+//            String hostname = c.getHostname();
+//            int port = clientContext.getTaskNetworkPortManager().getPort(
+//                serviceSpec.getName(), "tensorboard", 0);
+//            return "http://" + hostname + ":" + port;
+//          }
+//        }
+//      }
+//    }
+//
+//    return null;
+//  }
 
   private static JobState fromServiceState(ServiceState serviceState) {
     switch (serviceState){

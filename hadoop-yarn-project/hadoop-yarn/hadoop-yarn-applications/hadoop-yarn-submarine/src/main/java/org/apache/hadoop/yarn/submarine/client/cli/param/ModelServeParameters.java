@@ -54,7 +54,8 @@ public class ModelServeParameters extends RunParameters {
       throw new ParseException("--" + CliConstants.SERVING_RES + " is absent.");
     }
     servingTaskResource = CliUtils.createResourceFromString(
-        servingTaskResourceStr, clientContext.getOrCreateYarnClient());
+        servingTaskResourceStr,
+        clientContext.getOrCreateYarnClient().getResourceTypeInfo());
 
     servingLaunchCommandline = parsedCommandLine.getOptionValue(
         CliConstants.SERVING_LAUNCH_CMD);

@@ -12,17 +12,10 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.common.model;
+package org.apache.hadoop.yarn.submarine.common.exception;
 
-import org.apache.hadoop.yarn.submarine.client.cli.param.ModelServeParameters;
-
-/**
- * Model manager by using implementation of
- * https://github.com/tobegit3hub/simple_tensorflow_serving
- */
-public class STSModelManager extends ModelManager {
-  @Override
-  public void serveModel(ModelServeParameters parameters) {
-
+public class SubmarineRuntimeException extends RuntimeException {
+  public SubmarineRuntimeException(String s) {
+    super(s);
   }
 }

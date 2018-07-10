@@ -35,17 +35,19 @@ import java.io.IOException;
 import static org.apache.hadoop.yarn.service.utils.ServiceApiUtil.jsonSerDeser;
 
 public class RunJobCli extends AbstractCli {
-  private static final Logger LOG =
-      LoggerFactory.getLogger(RunJobCli.class);
-
   private Options options;
   private JobRunParameters parameters = new JobRunParameters();
 
   private JobSubmitter jobSubmitter;
 
   public RunJobCli(ClientContext cliContext) {
+    this(cliContext, JobSubmitterFactory.createJobSubmitter(cliContext));
+  }
+
+  public RunJobCli(ClientContext cliContext, JobSubmitter jobSubmitter) {
     super(cliContext);
     options = generateOptions();
+    this.jobSubmitter = jobSubmitter;
   }
 
   public void printUsages() {
@@ -93,12 +95,33 @@ public class RunJobCli extends AbstractCli {
     return options;
   }
 
+  private void replacePatternsInParameters() throws IOException {
+    if (parameters.getPSLaunchCmd() != null && !parameters.getPSLaunchCmd()
+        .isEmpty()) {
+      String afterReplace = CliUtils.replacePatternsInLaunchCommand(
+          parameters.getPSLaunchCmd(), parameters,
+          clientContext.getRemoteDirectoryManager());
+      parameters.setPSLaunchCmd(afterReplace);
+    }
+
+    if (parameters.getWorkerLaunchCmd() != null && !parameters.getWorkerLaunchCmd()
+        .isEmpty()) {
+      String afterReplace = CliUtils.replacePatternsInLaunchCommand(
+          parameters.getWorkerLaunchCmd(), parameters,
+          clientContext.getRemoteDirectoryManager());
+      parameters.setWorkerLaunchCmd(afterReplace);
+    }
+  }
+
   private void parseCommandLineAndGetRunJobParameters(String[] args)
       throws ParseException, IOException, YarnException {
     // Do parsing
     GnuParser parser = new GnuParser();
     CommandLine cli = parser.parse(options, args);
     parameters.updateParametersByParsedCommandline(cli, options, clientContext);
+
+    // replace patterns
+    replacePatternsInParameters();
   }
 
   @Override
@@ -106,14 +129,11 @@ public class RunJobCli extends AbstractCli {
       throws ParseException, IOException, YarnException, InterruptedException,
       SubmarineException {
     parseCommandLineAndGetRunJobParameters(args);
-
-    this.jobSubmitter = JobSubmitterFactory.createJobSubmitter(
-        clientContext);
     this.jobSubmitter.submitJob(parameters);
   }
 
   @VisibleForTesting
-  JobSubmitter getJobSubmitter() {
+  public JobSubmitter getJobSubmitter() {
     return jobSubmitter;
   }
 

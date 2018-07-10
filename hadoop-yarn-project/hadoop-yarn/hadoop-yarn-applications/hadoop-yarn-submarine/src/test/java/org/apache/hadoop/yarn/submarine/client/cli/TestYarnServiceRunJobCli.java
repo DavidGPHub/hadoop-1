@@ -22,10 +22,13 @@ import org.apache.hadoop.yarn.submarine.common.Constants;
 import org.apache.hadoop.yarn.submarine.common.MockClientContext;
 import org.apache.hadoop.yarn.service.api.records.Component;
 import org.apache.hadoop.yarn.service.api.records.Service;
+import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
+import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitter;
+import org.apache.hadoop.yarn.submarine.common.job.submitter.YarnServiceJobSubmitter;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class TestRunJobCli {
+public class TestYarnServiceRunJobCli {
   @Test
   public void testPrintHelp() {
     MockClientContext mockClientContext = new MockClientContext();
@@ -33,11 +36,15 @@ public class TestRunJobCli {
     runJobCli.printUsages();
   }
 
+  private Service getServiceSpecFromJobSubmitter(JobSubmitter jobSubmitter) {
+    return ((YarnServiceJobSubmitter)jobSubmitter).getServiceSpec();
+  }
+
   @Test
   public void testBasicRunJobForDistributedTraining() throws Exception {
     MockClientContext mockClientContext = new MockClientContext();
     RunJobCli runJobCli = new RunJobCli(mockClientContext);
-    Assert.assertFalse(mockClientContext.isVerbose());
+    Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
@@ -46,7 +53,8 @@ public class TestRunJobCli {
             "python run-job.py", "--worker_resources", "memory=2048,vcores=2",
             "--ps_resources", "memory=4096,vcores=4", "--tensorboard", "true",
             "--ps_launch_cmd", "python run-ps.py", "--verbose" });
-    Service serviceSpec = runJobCli.getServiceSpec();
+    Service serviceSpec = getServiceSpecFromJobSubmitter(
+        runJobCli.getJobSubmitter());
     Assert.assertEquals(3, serviceSpec.getComponents().size());
     Assert.assertTrue(
         serviceSpec.getComponent(Constants.WORKER_COMPONENT_NAME) != null);
@@ -70,7 +78,7 @@ public class TestRunJobCli {
     Assert.assertEquals(4096, psComp.getResource().calcMemoryMB());
     Assert.assertEquals(4, psComp.getResource().getCpus().intValue());
 
-    Assert.assertTrue(mockClientContext.isVerbose());
+    Assert.assertTrue(SubmarineLogs.isVerbose());
 
     // TODO, ADD TEST TO USE SERVICE CLIENT TO VALIDATE THE JSON SPEC
   }
@@ -79,7 +87,7 @@ public class TestRunJobCli {
   public void testBasicRunJobForSingleNodeTraining() throws Exception {
     MockClientContext mockClientContext = new MockClientContext();
     RunJobCli runJobCli = new RunJobCli(mockClientContext);
-    Assert.assertFalse(mockClientContext.isVerbose());
+    Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
@@ -87,7 +95,8 @@ public class TestRunJobCli {
             "--num_workers", "1", "--worker_launch_cmd", "python run-job.py",
             "--worker_resources", "memory=2048,vcores=2", "--tensorboard",
             "true", "--verbose" });
-    Service serviceSpec = runJobCli.getServiceSpec();
+    Service serviceSpec = getServiceSpecFromJobSubmitter(
+        runJobCli.getJobSubmitter());
     Assert.assertEquals(1, serviceSpec.getComponents().size());
     Assert.assertTrue(
         serviceSpec.getComponent(Constants.PRIMARY_WORKER_COMPONENT_NAME)
@@ -98,7 +107,7 @@ public class TestRunJobCli {
     Assert.assertEquals(2,
         primaryWorkerComp.getResource().getCpus().intValue());
 
-    Assert.assertTrue(mockClientContext.isVerbose());
+    Assert.assertTrue(SubmarineLogs.isVerbose());
 
     // TODO, ADD TEST TO USE SERVICE CLIENT TO VALIDATE THE JSON SPEC
   }
@@ -107,7 +116,7 @@ public class TestRunJobCli {
   public void testLaunchCommandPatternReplace() throws Exception {
     MockClientContext mockClientContext = new MockClientContext();
     RunJobCli runJobCli = new RunJobCli(mockClientContext);
-    Assert.assertFalse(mockClientContext.isVerbose());
+    Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
@@ -118,7 +127,8 @@ public class TestRunJobCli {
             "memory=4096,vcores=4", "--tensorboard", "true", "--ps_launch_cmd",
             "python run-ps.py --input=%input% --model_dir=%job_dir%/model",
             "--verbose" });
-    Service serviceSpec = runJobCli.getServiceSpec();
+    Service serviceSpec = getServiceSpecFromJobSubmitter(
+        runJobCli.getJobSubmitter());
     Assert.assertEquals(3, serviceSpec.getComponents().size());
     Assert.assertTrue(
         serviceSpec.getComponent(Constants.WORKER_COMPONENT_NAME) != null);
@@ -142,7 +152,7 @@ public class TestRunJobCli {
     Assert.assertEquals(4096, psComp.getResource().calcMemoryMB());
     Assert.assertEquals(4, psComp.getResource().getCpus().intValue());
 
-    Assert.assertTrue(mockClientContext.isVerbose());
+    Assert.assertTrue(SubmarineLogs.isVerbose());
 
     Assert.assertEquals(
         "python run-job.py --input=hdfs://input --model_dir=hdfs://output --export_dir=hdfs://output/savedmodel",

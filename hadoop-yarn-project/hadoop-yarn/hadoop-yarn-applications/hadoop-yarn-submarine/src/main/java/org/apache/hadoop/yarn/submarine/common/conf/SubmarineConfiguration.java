@@ -35,10 +35,18 @@ public class SubmarineConfiguration extends Configuration {
     }
   }
 
+  /*
+   * Runtime of submarine
+   */
+
   private static final String PREFIX = "submarine.";
 
   public static final String RUNTIME = PREFIX + "runtime";
   public static final String YARN_SERVICE_FRAMEWORK_RUNTIME =
       "yarn-service-framework";
   public static final String DEFAULT_RUNTIME = YARN_SERVICE_FRAMEWORK_RUNTIME;
+
+  public void setSubmarineRuntime(String runtime) {
+    set(RUNTIME, runtime);
+  }
 }
