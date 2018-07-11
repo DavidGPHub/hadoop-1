@@ -12,7 +12,7 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.common.job;
+package org.apache.hadoop.yarn.submarine.common.job.monitor;
 
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.api.JobState;
@@ -27,38 +27,41 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * Monitor status of job
+ * Monitor status of job(s)
  */
-public class JobMonitor {
+public abstract class JobMonitor {
   private static final Logger LOG =
       LoggerFactory.getLogger(JobMonitor.class);
+  protected ClientContext clientContext;
+
+  public JobMonitor(ClientContext clientContext) {
+    this.clientContext = clientContext;
+  }
+
   /**
    * Returns status of training job.
-   * @return JobStatus
+   *
+   * @param jobName name of job
+   * @return job status
+   * @throws IOException anything else happens
+   * @throws YarnException anything related to YARN happens
    */
-  public JobStatus getTrainingJobStatus(String jobName, ClientContext clientContext)
-      throws IOException, YarnException {
-    ServiceClient serviceClient = clientContext.getServiceClient();
-    Service serviceSpec = serviceClient.getStatus(jobName);
-    JobStatus jobStatus = JobStatusBuilder.fromServiceSpec(serviceSpec);
-    return jobStatus;
-  }
+  public abstract JobStatus getTrainingJobStatus(String jobName)
+      throws IOException, YarnException;
 
   /**
    * Continue wait and print status if job goes to ready or final state.
    * @param jobName
-   * @param clientContext
    * @throws IOException
    * @throws YarnException
    */
-  public void waitTrainingJobReadyOrFinal(String jobName,
-      ClientContext clientContext)
+  public void waitTrainingFinal(String jobName)
       throws IOException, YarnException {
     // Wait 5 sec between each fetch.
-    int waitSec = 5;
+    int waitIntervalSec = 5;
     JobStatus js;
     while (true) {
-      js = getTrainingJobStatus(jobName, clientContext);
+      js = getTrainingJobStatus(jobName);
       JobState jobState = js.getState();
       js.nicePrint(System.err);
 
@@ -68,7 +71,7 @@ public class JobMonitor {
       }
 
       try {
-        Thread.sleep(waitSec * 1000);
+        Thread.sleep(waitIntervalSec * 1000);
       } catch (InterruptedException e) {
         throw new IOException(e);
       }

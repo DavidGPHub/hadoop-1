@@ -20,34 +20,41 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
+import org.apache.hadoop.yarn.submarine.common.job.monitor.JobMonitor;
+import org.apache.hadoop.yarn.submarine.common.job.monitor.JobMonitorFactory;
 import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitter;
 import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitterFactory;
-import org.apache.hadoop.yarn.submarine.common.job.submitter.YarnServiceJobSubmitter;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.service.api.records.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-
-import static org.apache.hadoop.yarn.service.utils.ServiceApiUtil.jsonSerDeser;
 
 public class RunJobCli extends AbstractCli {
   private Options options;
   private JobRunParameters parameters = new JobRunParameters();
 
   private JobSubmitter jobSubmitter;
+  private JobMonitor jobMonitor;
 
   public RunJobCli(ClientContext cliContext) {
-    this(cliContext, JobSubmitterFactory.createJobSubmitter(cliContext));
+    this(cliContext, JobSubmitterFactory.createJobSubmitter(cliContext),
+        JobMonitorFactory.createJobMonitor(cliContext));
   }
 
+  @VisibleForTesting
   public RunJobCli(ClientContext cliContext, JobSubmitter jobSubmitter) {
+    this(cliContext, jobSubmitter,
+        JobMonitorFactory.createJobMonitor(cliContext));
+  }
+
+  @VisibleForTesting
+  public RunJobCli(ClientContext cliContext, JobSubmitter jobSubmitter,
+      JobMonitor jobMonitor) {
     super(cliContext);
     options = generateOptions();
     this.jobSubmitter = jobSubmitter;
+    this.jobMonitor = jobMonitor;
   }
 
   public void printUsages() {
@@ -92,6 +99,8 @@ public class RunJobCli extends AbstractCli {
         "Common environment variable of worker/ps");
     options.addOption(CliConstants.VERBOSE, false,
         "Print verbose log for troubleshooting");
+    options.addOption(CliConstants.WAIT_JOB_FINISH, false,
+        "Specified when user want to wait the job finish");
     return options;
   }
 
@@ -130,6 +139,9 @@ public class RunJobCli extends AbstractCli {
       SubmarineException {
     parseCommandLineAndGetRunJobParameters(args);
     this.jobSubmitter.submitJob(parameters);
+    if (parameters.isWaitJobFinish()) {
+      this.jobMonitor.waitTrainingFinal(parameters.getName());
+    }
   }
 
   @VisibleForTesting

@@ -19,14 +19,22 @@
 
 package org.apache.hadoop.yarn.submarine.client.cli;
 
+import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.api.records.ResourceInformation;
+import org.apache.hadoop.yarn.api.records.ResourceTypeInfo;
 import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.submarine.common.MockClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
+import org.apache.hadoop.yarn.submarine.common.job.monitor.JobMonitor;
 import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitter;
+import org.apache.hadoop.yarn.util.resource.ResourceUtils;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.mockito.Mockito.mock;
 
@@ -80,7 +88,9 @@ public class TestRunJobCliParsing {
   public void testBasicRunJobForSingleNodeTraining() throws Exception {
     MockClientContext mockClientContext = new MockClientContext();
     JobSubmitter mockJobSubmitter = mock(JobSubmitter.class);
-    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter);
+    JobMonitor mockJobMonitor = mock(JobMonitor.class);
+    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter,
+        mockJobMonitor);
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(
@@ -88,7 +98,7 @@ public class TestRunJobCliParsing {
             "--input_path", "hdfs://input", "--checkpoint_path", "hdfs://output",
             "--num_workers", "1", "--worker_launch_cmd", "python run-job.py",
             "--worker_resources", "memory=4g,vcores=2", "--tensorboard",
-            "true", "--verbose" });
+            "true", "--verbose", "--wait_job_finish" });
 
     JobRunParameters jobRunParameters = runJobCli.getRunJobParameters();
 
@@ -100,6 +110,7 @@ public class TestRunJobCliParsing {
     Assert.assertEquals(Resources.createResource(4096, 2),
         jobRunParameters.getWorkerResource());
     Assert.assertTrue(SubmarineLogs.isVerbose());
+    Assert.assertTrue(jobRunParameters.isWaitJobFinish());
   }
 
   @Test
@@ -126,5 +137,73 @@ public class TestRunJobCliParsing {
     Assert.assertEquals(
         "python run-ps.py --input=hdfs://input --model_dir=hdfs://output/model",
         runJobCli.getRunJobParameters().getPSLaunchCmd());
+  }
+
+  @Test
+  public void testResourceUnitParsing() throws Exception {
+    Resource res = CliUtils.createResourceFromString("memory=20g,vcores=3",
+        ResourceUtils.getResourcesTypeInfo());
+    Assert.assertEquals(Resources.createResource(20 * 1024, 3), res);
+
+    res = CliUtils.createResourceFromString("memory=20G,vcores=3",
+        ResourceUtils.getResourcesTypeInfo());
+    Assert.assertEquals(Resources.createResource(20 * 1024, 3), res);
+
+    res = CliUtils.createResourceFromString("memory=20M,vcores=3",
+        ResourceUtils.getResourcesTypeInfo());
+    Assert.assertEquals(Resources.createResource(20, 3), res);
+
+    res = CliUtils.createResourceFromString("memory=20m,vcores=3",
+        ResourceUtils.getResourcesTypeInfo());
+    Assert.assertEquals(Resources.createResource(20, 3), res);
+
+    res = CliUtils.createResourceFromString("memory-mb=20,vcores=3",
+        ResourceUtils.getResourcesTypeInfo());
+    Assert.assertEquals(Resources.createResource(20, 3), res);
+
+    res = CliUtils.createResourceFromString("memory-mb=20m,vcores=3",
+        ResourceUtils.getResourcesTypeInfo());
+    Assert.assertEquals(Resources.createResource(20, 3), res);
+
+    res = CliUtils.createResourceFromString("memory-mb=20G,vcores=3",
+        ResourceUtils.getResourcesTypeInfo());
+    Assert.assertEquals(Resources.createResource(20 * 1024, 3), res);
+
+    // W/o unit for memory means bits, and 20 bits will be rounded to 0
+    res = CliUtils.createResourceFromString("memory=20,vcores=3",
+        ResourceUtils.getResourcesTypeInfo());
+    Assert.assertEquals(Resources.createResource(0, 3), res);
+
+    // Test multiple resources
+    List<ResourceTypeInfo> resTypes = new ArrayList<>(
+        ResourceUtils.getResourcesTypeInfo());
+    resTypes.add(ResourceTypeInfo.newInstance(ResourceInformation.GPU_URI, ""));
+    ResourceUtils.reinitializeResources(resTypes);
+    res = CliUtils.createResourceFromString("memory=2G,vcores=3,gpu=0",
+        resTypes);
+    Assert.assertEquals(2 * 1024, res.getMemorySize());
+    Assert.assertEquals(0, res.getResourceValue(ResourceInformation.GPU_URI));
+
+    res = CliUtils.createResourceFromString("memory=2G,vcores=3,gpu=3",
+        resTypes);
+    Assert.assertEquals(2 * 1024, res.getMemorySize());
+    Assert.assertEquals(3, res.getResourceValue(ResourceInformation.GPU_URI));
+
+    res = CliUtils.createResourceFromString("memory=2G,vcores=3",
+        resTypes);
+    Assert.assertEquals(2 * 1024, res.getMemorySize());
+    Assert.assertEquals(0, res.getResourceValue(ResourceInformation.GPU_URI));
+
+    res = CliUtils.createResourceFromString("memory=2G,vcores=3,yarn.io/gpu=0",
+        resTypes);
+    Assert.assertEquals(2 * 1024, res.getMemorySize());
+    Assert.assertEquals(0, res.getResourceValue(ResourceInformation.GPU_URI));
+
+    res = CliUtils.createResourceFromString("memory=2G,vcores=3,yarn.io/gpu=3",
+        resTypes);
+    Assert.assertEquals(2 * 1024, res.getMemorySize());
+    Assert.assertEquals(3, res.getResourceValue(ResourceInformation.GPU_URI));
+
+    // TODO, add more negative tests.
   }
 }

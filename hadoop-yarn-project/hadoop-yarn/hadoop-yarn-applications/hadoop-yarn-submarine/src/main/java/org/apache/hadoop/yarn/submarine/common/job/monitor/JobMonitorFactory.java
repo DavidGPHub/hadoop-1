@@ -12,24 +12,22 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.common.job.submitter;
+
+package org.apache.hadoop.yarn.submarine.common.job.monitor;
 
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineConfiguration;
 import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
 import org.apache.hadoop.yarn.submarine.common.exception.SubmarineRuntimeException;
 
-/**
- * Get job Submitter by SubmarineConfiguration
- */
-public class JobSubmitterFactory {
+public class JobMonitorFactory {
   /**
-   * Create JobSubmitter instance by config
+   * Create JobMonitor instance by config
    * @param clientContext clientContext
-   * @return JobSubmitter
+   * @return JobMonitor
    * @throws SubmarineException when anything bad related to Submarine happens.
    */
-  public static JobSubmitter createJobSubmitter(
+  public static JobMonitor createJobMonitor(
       ClientContext clientContext) throws SubmarineRuntimeException {
     SubmarineConfiguration submarineConfiguration =
         clientContext.getSubmarineConfig();
@@ -38,7 +36,7 @@ public class JobSubmitterFactory {
         SubmarineConfiguration.DEFAULT_RUNTIME);
 
     if (runtime.equals(SubmarineConfiguration.YARN_SERVICE_FRAMEWORK_RUNTIME)) {
-      return new YarnServiceJobSubmitter(clientContext);
+      return new YarnServiceJobMonitor(clientContext);
     }
 
     throw new SubmarineRuntimeException(

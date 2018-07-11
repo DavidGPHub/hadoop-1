@@ -34,7 +34,7 @@ import org.apache.hadoop.yarn.submarine.common.Constants;
 import org.apache.hadoop.yarn.submarine.common.Envs;
 import org.apache.hadoop.yarn.submarine.common.api.TaskType;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
-import org.apache.hadoop.yarn.submarine.common.job.JobMonitor;
+import org.apache.hadoop.yarn.submarine.common.job.monitor.JobMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -309,9 +309,6 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     ServiceClient serviceClient = clientContext.getServiceClient();
     serviceClient.actionCreate(service);
     this.serviceSpec = service;
-
-    JobMonitor jobMonitor = new JobMonitor();
-    jobMonitor.waitTrainingJobReadyOrFinal(parameters.getName(), clientContext);
   }
 
   @VisibleForTesting

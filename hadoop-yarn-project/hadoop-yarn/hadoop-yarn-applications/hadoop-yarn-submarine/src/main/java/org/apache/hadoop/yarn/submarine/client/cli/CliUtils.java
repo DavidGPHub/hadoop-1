@@ -122,6 +122,16 @@ public class CliUtils {
             resourceValue);
       }
 
+      // special handle gpu
+      if (key.equals("gpu")) {
+        key = ResourceInformation.GPU_URI;
+      }
+
+      // special handle fpga
+      if (key.equals("fpga")) {
+        key = ResourceInformation.FPGA_URI;
+      }
+
       resources.put(key, resourceValue);
     }
     return resources;

@@ -23,7 +23,6 @@ import org.apache.hadoop.yarn.submarine.common.fs.RemoteDirectoryManager;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
-import org.apache.hadoop.yarn.submarine.common.job.JobMonitor;
 import org.apache.hadoop.yarn.util.resource.ResourceUtils;
 
 import java.io.IOException;

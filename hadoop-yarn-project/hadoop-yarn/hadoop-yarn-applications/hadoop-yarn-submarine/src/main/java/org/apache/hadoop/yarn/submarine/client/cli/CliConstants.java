@@ -41,4 +41,5 @@ public class CliConstants {
   public static final String VERBOSE = "verbose";
   public static final String SERVING_FRAMEWORK = "serving_framework";
   public static final String STOP = "stop";
+  public static final String WAIT_JOB_FINISH = "wait_job_finish";
 }

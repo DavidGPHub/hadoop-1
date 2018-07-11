@@ -23,6 +23,7 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.submarine.client.cli.CliConstants;
 import org.apache.hadoop.yarn.submarine.client.cli.CliUtils;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
+import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
 
 import java.io.IOException;
 
@@ -40,6 +41,8 @@ public class JobRunParameters extends RunParameters {
   private boolean tensorboardEnabled;
   private String workerLaunchCmd;
   private String psLaunchCmd;
+
+  private boolean waitJobFinish = false;
 
   @Override
   public void printUsages(Options options) {
@@ -90,6 +93,10 @@ public class JobRunParameters extends RunParameters {
     if (parsedCommandLine.getOptionValue(CliConstants.TENSORBOARD) != null) {
       tensorboard = Boolean.parseBoolean(
           parsedCommandLine.getOptionValue(CliConstants.TENSORBOARD));
+    }
+
+    if (parsedCommandLine.hasOption(CliConstants.WAIT_JOB_FINISH)) {
+      this.waitJobFinish = true;
     }
 
     String workerLaunchCmd = parsedCommandLine.getOptionValue(
@@ -185,5 +192,9 @@ public class JobRunParameters extends RunParameters {
   public JobRunParameters setPSLaunchCmd(String psLaunchCmd) {
     this.psLaunchCmd = psLaunchCmd;
     return this;
+  }
+
+  public boolean isWaitJobFinish() {
+    return waitJobFinish;
   }
 }

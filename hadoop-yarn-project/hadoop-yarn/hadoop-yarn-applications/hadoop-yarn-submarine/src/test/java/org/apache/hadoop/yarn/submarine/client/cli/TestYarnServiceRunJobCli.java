@@ -26,9 +26,14 @@ import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
 import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitter;
 import org.apache.hadoop.yarn.submarine.common.job.submitter.YarnServiceJobSubmitter;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 public class TestYarnServiceRunJobCli {
+  @Before
+  public void before() {
+    SubmarineLogs.verboseOff();
+  }
   @Test
   public void testPrintHelp() {
     MockClientContext mockClientContext = new MockClientContext();
@@ -48,10 +53,10 @@ public class TestYarnServiceRunJobCli {
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
-            "--input", "hdfs://input", "--job_dir", "hdfs://output",
+            "--input_path", "hdfs://input", "--checkpoint_path", "hdfs://output",
             "--num_workers", "3", "--num_ps", "2", "--worker_launch_cmd",
-            "python run-job.py", "--worker_resources", "memory=2048,vcores=2",
-            "--ps_resources", "memory=4096,vcores=4", "--tensorboard", "true",
+            "python run-job.py", "--worker_resources", "memory=2048M,vcores=2",
+            "--ps_resources", "memory=4096M,vcores=4", "--tensorboard", "true",
             "--ps_launch_cmd", "python run-ps.py", "--verbose" });
     Service serviceSpec = getServiceSpecFromJobSubmitter(
         runJobCli.getJobSubmitter());
@@ -91,9 +96,9 @@ public class TestYarnServiceRunJobCli {
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
-            "--input", "hdfs://input", "--job_dir", "hdfs://output",
+            "--input_path", "hdfs://input", "--checkpoint_path", "hdfs://output",
             "--num_workers", "1", "--worker_launch_cmd", "python run-job.py",
-            "--worker_resources", "memory=2048,vcores=2", "--tensorboard",
+            "--worker_resources", "memory=2G,vcores=2", "--tensorboard",
             "true", "--verbose" });
     Service serviceSpec = getServiceSpecFromJobSubmitter(
         runJobCli.getJobSubmitter());
@@ -123,7 +128,7 @@ public class TestYarnServiceRunJobCli {
             "--input", "hdfs://input", "--job_dir", "hdfs://output",
             "--num_workers", "3", "--num_ps", "2", "--worker_launch_cmd",
             "python run-job.py --input=%input% --model_dir=%job_dir% --export_dir=%savedmodel_path%/savedmodel",
-            "--worker_resources", "memory=2048,vcores=2", "--ps_resources",
+            "--worker_resources", "memory=2048M,vcores=2", "--ps_resources",
             "memory=4096,vcores=4", "--tensorboard", "true", "--ps_launch_cmd",
             "python run-ps.py --input=%input% --model_dir=%job_dir%/model",
             "--verbose" });

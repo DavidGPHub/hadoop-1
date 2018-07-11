@@ -19,7 +19,7 @@ public class Envs {
   public static final String TASK_INDEX_ENV = "_TASK_INDEX";
 
   /*
-   * HDFS-related configs
+   * HDFS/HADOOP-related configs
    */
   public static final String HADOOP_HDFS_HOME = "HADOOP_HDFS_HOME";
   public static final String JAVA_HOME = "JAVA_HOME";
