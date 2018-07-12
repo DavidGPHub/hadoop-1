@@ -25,8 +25,8 @@ import org.apache.hadoop.yarn.api.records.ResourceTypeInfo;
 import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.submarine.common.MockClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
-import org.apache.hadoop.yarn.submarine.common.job.monitor.JobMonitor;
-import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitter;
+import org.apache.hadoop.yarn.submarine.runtimes.common.JobMonitor;
+import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
 import org.apache.hadoop.yarn.util.resource.ResourceUtils;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.Assert;
@@ -47,7 +47,10 @@ public class TestRunJobCliParsing {
   @Test
   public void testPrintHelp() {
     MockClientContext mockClientContext = new MockClientContext();
-    RunJobCli runJobCli = new RunJobCli(mockClientContext);
+    JobSubmitter mockJobSubmitter = mock(JobSubmitter.class);
+    JobMonitor mockJobMonitor = mock(JobMonitor.class);
+    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter,
+        mockJobMonitor);
     runJobCli.printUsages();
   }
 
@@ -55,7 +58,9 @@ public class TestRunJobCliParsing {
   public void testBasicRunJobForDistributedTraining() throws Exception {
     MockClientContext mockClientContext = new MockClientContext();
     JobSubmitter mockJobSubmitter = mock(JobSubmitter.class);
-    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter);
+    JobMonitor mockJobMonitor = mock(JobMonitor.class);
+    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter,
+        mockJobMonitor);
 
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
@@ -117,7 +122,9 @@ public class TestRunJobCliParsing {
   public void testLaunchCommandPatternReplace() throws Exception {
     MockClientContext mockClientContext = new MockClientContext();
     JobSubmitter mockJobSubmitter = mock(JobSubmitter.class);
-    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter);
+    JobMonitor mockJobMonitor = mock(JobMonitor.class);
+    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter,
+        mockJobMonitor);
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(

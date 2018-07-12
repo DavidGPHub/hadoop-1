@@ -45,8 +45,6 @@ public class DefaultRemoteDirectoryManager implements RemoteDirectoryManager {
 
   @Override
   public Path getAndCreateJobCheckpointDir(String jobName) throws IOException {
-    Path jobStagingArea = getAndCreateJobStagingArea(jobName);
-
     Path jobDir = new Path(getAndCreateJobStagingArea(jobName),
         CliConstants.CHECKPOINT_PATH);
     createFolderIfNotExist(jobDir);

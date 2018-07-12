@@ -15,19 +15,19 @@
 package org.apache.hadoop.yarn.submarine.common;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.yarn.submarine.common.conf.SubmarineConfiguration;
-import org.apache.hadoop.yarn.submarine.common.fs.RemoteDirectoryManager;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.service.client.ServiceClient;
+import org.apache.hadoop.yarn.submarine.common.conf.SubmarineConfiguration;
+import org.apache.hadoop.yarn.submarine.common.fs.RemoteDirectoryManager;
+import org.apache.hadoop.yarn.submarine.runtimes.RuntimeFactory;
 
 public class ClientContext {
   private Configuration yarnConf = new YarnConfiguration();
 
   private RemoteDirectoryManager remoteDirectoryManager;
   private YarnClient yarnClient;
-  private ServiceClient serviceClient;
   private SubmarineConfiguration submarineConfig;
+  private RuntimeFactory runtimeFactory;
 
   public ClientContext() {
     submarineConfig = new SubmarineConfiguration();
@@ -59,20 +59,19 @@ public class ClientContext {
     this.remoteDirectoryManager = remoteDirectoryManager;
   }
 
-  public synchronized ServiceClient getServiceClient() {
-    if (serviceClient == null) {
-      serviceClient = new ServiceClient();
-      serviceClient.init(yarnConf);
-      serviceClient.start();
-    }
-    return serviceClient;
-  }
-
   public SubmarineConfiguration getSubmarineConfig() {
     return submarineConfig;
   }
 
   public void setSubmarineConfig(SubmarineConfiguration submarineConfig) {
     this.submarineConfig = submarineConfig;
+  }
+
+  public RuntimeFactory getRuntimeFactory() {
+    return runtimeFactory;
+  }
+
+  public void setRuntimeFactory(RuntimeFactory runtimeFactory) {
+    this.runtimeFactory = runtimeFactory;
   }
 }

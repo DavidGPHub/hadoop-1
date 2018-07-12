@@ -2,9 +2,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
- *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,10 +20,8 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
-import org.apache.hadoop.yarn.submarine.common.job.monitor.JobMonitor;
-import org.apache.hadoop.yarn.submarine.common.job.monitor.JobMonitorFactory;
-import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitter;
-import org.apache.hadoop.yarn.submarine.common.job.submitter.JobSubmitterFactory;
+import org.apache.hadoop.yarn.submarine.runtimes.common.JobMonitor;
+import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.exceptions.YarnException;
@@ -38,14 +36,8 @@ public class RunJobCli extends AbstractCli {
   private JobMonitor jobMonitor;
 
   public RunJobCli(ClientContext cliContext) {
-    this(cliContext, JobSubmitterFactory.createJobSubmitter(cliContext),
-        JobMonitorFactory.createJobMonitor(cliContext));
-  }
-
-  @VisibleForTesting
-  public RunJobCli(ClientContext cliContext, JobSubmitter jobSubmitter) {
-    this(cliContext, jobSubmitter,
-        JobMonitorFactory.createJobMonitor(cliContext));
+    this(cliContext, cliContext.getRuntimeFactory().getJobSubmitterInstance(),
+        cliContext.getRuntimeFactory().getJobMonitorInstance());
   }
 
   @VisibleForTesting
@@ -87,8 +79,8 @@ public class RunJobCli extends AbstractCli {
     options.addOption(CliConstants.DOCKER_IMAGE, true, "Docker image name/tag");
     options.addOption(CliConstants.QUEUE, true,
         "Name of queue to run the job, by default it uses default queue");
-    options.addOption(CliConstants.TENSORBOARD, true, "Should we run TensorBoard"
-        + " for this job? By default it's true");
+    options.addOption(CliConstants.TENSORBOARD, true,
+        "Should we run TensorBoard" + " for this job? By default it's true");
     options.addOption(CliConstants.WORKER_LAUNCH_CMD, true,
         "Commandline of worker, arguments will be "
             + "directly used to launch the worker");
@@ -113,8 +105,8 @@ public class RunJobCli extends AbstractCli {
       parameters.setPSLaunchCmd(afterReplace);
     }
 
-    if (parameters.getWorkerLaunchCmd() != null && !parameters.getWorkerLaunchCmd()
-        .isEmpty()) {
+    if (parameters.getWorkerLaunchCmd() != null && !parameters
+        .getWorkerLaunchCmd().isEmpty()) {
       String afterReplace = CliUtils.replacePatternsInLaunchCommand(
           parameters.getWorkerLaunchCmd(), parameters,
           clientContext.getRemoteDirectoryManager());

@@ -12,15 +12,12 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.common.job.monitor;
+package org.apache.hadoop.yarn.submarine.runtimes.common;
 
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.api.JobState;
 import org.apache.hadoop.yarn.submarine.common.api.JobStatus;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.service.api.records.Service;
-import org.apache.hadoop.yarn.service.client.ServiceClient;
-import org.apache.hadoop.yarn.submarine.common.api.builder.JobStatusBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

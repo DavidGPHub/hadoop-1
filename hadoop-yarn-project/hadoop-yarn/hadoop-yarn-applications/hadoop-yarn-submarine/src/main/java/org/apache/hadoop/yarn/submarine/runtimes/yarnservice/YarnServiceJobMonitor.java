@@ -12,7 +12,7 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.common.job.monitor;
+package org.apache.hadoop.yarn.submarine.runtimes.yarnservice;
 
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.api.records.Service;
@@ -20,19 +20,26 @@ import org.apache.hadoop.yarn.service.client.ServiceClient;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.api.JobStatus;
 import org.apache.hadoop.yarn.submarine.common.api.builder.JobStatusBuilder;
+import org.apache.hadoop.yarn.submarine.runtimes.common.JobMonitor;
 
 import java.io.IOException;
 
 public class YarnServiceJobMonitor extends JobMonitor {
+  private ServiceClient serviceClient = null;
+
   public YarnServiceJobMonitor(ClientContext clientContext) {
     super(clientContext);
   }
 
   @Override
-  public JobStatus getTrainingJobStatus(String jobName)
+  public synchronized JobStatus getTrainingJobStatus(String jobName)
       throws IOException, YarnException {
-    ServiceClient serviceClient = super.clientContext.getServiceClient();
-    Service serviceSpec = serviceClient.getStatus(jobName);
+    if (this.serviceClient == null) {
+      this.serviceClient = YarnServiceUtils.createServiceClient(
+          clientContext.getYarnConfig());
+    }
+
+    Service serviceSpec = this.serviceClient.getStatus(jobName);
     JobStatus jobStatus = JobStatusBuilder.fromServiceSpec(serviceSpec);
     return jobStatus;
   }

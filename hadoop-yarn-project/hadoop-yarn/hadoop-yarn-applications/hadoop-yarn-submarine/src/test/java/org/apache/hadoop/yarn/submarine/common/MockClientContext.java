@@ -53,9 +53,4 @@ public class MockClientContext extends ClientContext {
     }
     return client;
   }
-
-  @Override
-  public synchronized ServiceClient getServiceClient() {
-    return mock(ServiceClient.class);
-  }
 }

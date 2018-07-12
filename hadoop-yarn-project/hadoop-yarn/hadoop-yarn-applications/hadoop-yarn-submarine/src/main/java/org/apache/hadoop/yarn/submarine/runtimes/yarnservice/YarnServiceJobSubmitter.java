@@ -12,7 +12,7 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.common.job.submitter;
+package org.apache.hadoop.yarn.submarine.runtimes.yarnservice;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.fs.FileStatus;
@@ -34,7 +34,7 @@ import org.apache.hadoop.yarn.submarine.common.Constants;
 import org.apache.hadoop.yarn.submarine.common.Envs;
 import org.apache.hadoop.yarn.submarine.common.api.TaskType;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
-import org.apache.hadoop.yarn.submarine.common.job.monitor.JobMonitor;
+import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -306,8 +306,10 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
   public void submitJob(JobRunParameters parameters)
       throws IOException, YarnException {
     Service service = createServiceByParameters(parameters);
-    ServiceClient serviceClient = clientContext.getServiceClient();
+    ServiceClient serviceClient = YarnServiceUtils.createServiceClient(
+        clientContext.getYarnConfig());
     serviceClient.actionCreate(service);
+    serviceClient.stop();
     this.serviceSpec = service;
   }
 

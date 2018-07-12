@@ -41,12 +41,11 @@ public class SubmarineConfiguration extends Configuration {
 
   private static final String PREFIX = "submarine.";
 
-  public static final String RUNTIME = PREFIX + "runtime";
-  public static final String YARN_SERVICE_FRAMEWORK_RUNTIME =
-      "yarn-service-framework";
-  public static final String DEFAULT_RUNTIME = YARN_SERVICE_FRAMEWORK_RUNTIME;
+  public static final String RUNTIME_CLASS = PREFIX + "runtime.class";
+  public static final String DEFAULT_RUNTIME_CLASS =
+      "org.apache.hadoop.yarn.submarine.runtimes.yarnservice.YarnServiceRuntimeFactory";
 
-  public void setSubmarineRuntime(String runtime) {
-    set(RUNTIME, runtime);
+  public void setSubmarineRuntimeClass(String runtimeClass) {
+    set(RUNTIME_CLASS, runtimeClass);
   }
 }

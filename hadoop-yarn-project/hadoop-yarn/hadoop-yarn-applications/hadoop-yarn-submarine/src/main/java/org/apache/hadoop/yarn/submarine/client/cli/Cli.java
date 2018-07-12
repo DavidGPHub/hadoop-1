@@ -18,6 +18,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.fs.DefaultRemoteDirectoryManager;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
+import org.apache.hadoop.yarn.submarine.runtimes.RuntimeFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,9 @@ public class Cli {
     clientContext.setConfiguration(conf);
     clientContext.setRemoteDirectoryManager(
         new DefaultRemoteDirectoryManager(clientContext));
+    RuntimeFactory runtimeFactory = RuntimeFactory.getRuntimeFactory(
+        clientContext);
+    clientContext.setRuntimeFactory(runtimeFactory);
     return clientContext;
   }
 
