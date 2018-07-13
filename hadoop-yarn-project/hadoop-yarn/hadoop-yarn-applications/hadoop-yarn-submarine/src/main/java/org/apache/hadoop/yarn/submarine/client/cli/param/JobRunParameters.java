@@ -23,7 +23,6 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.submarine.client.cli.CliConstants;
 import org.apache.hadoop.yarn.submarine.client.cli.CliUtils;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
-import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
 
 import java.io.IOException;
 
@@ -32,7 +31,7 @@ import java.io.IOException;
  */
 public class JobRunParameters extends RunParameters {
   private String input;
-  private String jobDir;
+  private String checkpointPath;
 
   private int numWorkers;
   private int numPS;
@@ -104,7 +103,7 @@ public class JobRunParameters extends RunParameters {
     String psLaunchCommand = parsedCommandLine.getOptionValue(
         CliConstants.PS_LAUNCH_CMD);
 
-    this.setInput(input).setJobDir(jobDir).setNumPS(nPS).setNumWorkers(nWorkers)
+    this.setInputPath(input).setCheckpointPath(jobDir).setNumPS(nPS).setNumWorkers(nWorkers)
         .setPSLaunchCmd(psLaunchCommand).setWorkerLaunchCmd(workerLaunchCmd)
         .setPsResource(psResource).setWorkerResource(workerResource)
         .setTensorboardEnabled(tensorboard);
@@ -117,17 +116,17 @@ public class JobRunParameters extends RunParameters {
     return input;
   }
 
-  public JobRunParameters setInput(String input) {
+  public JobRunParameters setInputPath(String input) {
     this.input = input;
     return this;
   }
 
   public String getCheckpointPath() {
-    return jobDir;
+    return checkpointPath;
   }
 
-  public JobRunParameters setJobDir(String jobDir) {
-    this.jobDir = jobDir;
+  public JobRunParameters setCheckpointPath(String checkpointPath) {
+    this.checkpointPath = checkpointPath;
     return this;
   }
 
