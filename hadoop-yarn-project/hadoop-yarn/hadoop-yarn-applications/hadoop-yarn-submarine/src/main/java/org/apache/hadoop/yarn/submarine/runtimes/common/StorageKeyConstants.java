@@ -20,6 +20,5 @@ public class StorageKeyConstants {
   public static final String APPLICATION_ID = "APPLICATION_ID";
   public static final String CHECKPOINT_PATH = "CHECKPOINT_PATH";
   public static final String INPUT_PATH = "INPUT_PATH";
-  public static final String RUN_PARAMETRS = "RUN_PARAMETERS";
   public static final String SAVED_MODEL_PATH = "SAVED_MODEL_PATH";
 }

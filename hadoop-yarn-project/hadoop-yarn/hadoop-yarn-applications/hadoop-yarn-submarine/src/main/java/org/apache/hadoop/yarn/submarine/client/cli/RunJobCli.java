@@ -103,6 +103,10 @@ public class RunJobCli extends AbstractCli {
         "Print verbose log for troubleshooting");
     options.addOption(CliConstants.WAIT_JOB_FINISH, false,
         "Specified when user want to wait the job finish");
+    options.addOption(CliConstants.REMOTE_CONFIG_FOLDER, false,
+        "Configuration files like hdfs-site.xml/krb5.conf, etc. stored. "
+            + "Contents inside this folder will be downloaded to container's "
+            + "local directory before launch.");
     return options;
   }
 
@@ -160,7 +164,7 @@ public class RunJobCli extends AbstractCli {
           parameters.getSavedModelPath());
     }
 
-    String joinedArgs = String.join(",", args);
+    String joinedArgs = String.join(" ", args);
     jobInfo.put(StorageKeyConstants.JOB_RUN_ARGS, joinedArgs);
     clientContext.getRuntimeFactory().getSubmarineStorage().addNewJob(jobName,
         jobInfo);

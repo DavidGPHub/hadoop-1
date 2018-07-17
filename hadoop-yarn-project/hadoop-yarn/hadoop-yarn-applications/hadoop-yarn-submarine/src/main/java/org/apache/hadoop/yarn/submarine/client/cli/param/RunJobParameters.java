@@ -42,6 +42,8 @@ public class RunJobParameters extends RunParameters {
 
   private boolean waitJobFinish = false;
 
+  private String remoteConfigFolder;
+
   @Override
   public void updateParametersByParsedCommandline(CommandLine parsedCommandLine,
       Options options, ClientContext clientContext)
@@ -80,7 +82,7 @@ public class RunJobParameters extends RunParameters {
           clientContext.getOrCreateYarnClient().getResourceTypeInfo());
     }
 
-    boolean tensorboard = true;
+    boolean tensorboard = false;
     if (parsedCommandLine.getOptionValue(CliConstants.TENSORBOARD) != null) {
       tensorboard = Boolean.parseBoolean(
           parsedCommandLine.getOptionValue(CliConstants.TENSORBOARD));
@@ -94,6 +96,12 @@ public class RunJobParameters extends RunParameters {
         CliConstants.WORKER_LAUNCH_CMD);
     String psLaunchCommand = parsedCommandLine.getOptionValue(
         CliConstants.PS_LAUNCH_CMD);
+
+    if (parsedCommandLine.getOptionValue(CliConstants.REMOTE_CONFIG_FOLDER)
+        != null) {
+      this.remoteConfigFolder = parsedCommandLine.getOptionValue(
+          CliConstants.REMOTE_CONFIG_FOLDER);
+    }
 
     this.setInputPath(input).setCheckpointPath(jobDir).setNumPS(nPS).setNumWorkers(nWorkers)
         .setPSLaunchCmd(psLaunchCommand).setWorkerLaunchCmd(workerLaunchCmd)
@@ -187,5 +195,9 @@ public class RunJobParameters extends RunParameters {
 
   public boolean isWaitJobFinish() {
     return waitJobFinish;
+  }
+
+  public String getRemoteConfigFolder() {
+    return remoteConfigFolder;
   }
 }

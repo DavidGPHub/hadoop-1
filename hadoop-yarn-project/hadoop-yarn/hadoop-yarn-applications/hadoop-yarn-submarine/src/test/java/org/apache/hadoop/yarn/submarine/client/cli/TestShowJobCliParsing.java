@@ -30,7 +30,6 @@ import org.apache.hadoop.yarn.submarine.runtimes.RuntimeFactory;
 import org.apache.hadoop.yarn.submarine.runtimes.common.MemorySubmarineStorage;
 import org.apache.hadoop.yarn.submarine.runtimes.common.StorageKeyConstants;
 import org.apache.hadoop.yarn.submarine.runtimes.common.SubmarineStorage;
-import org.apache.hadoop.yarn.submarine.runtimes.yarnservice.YarnServiceRuntimeFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;

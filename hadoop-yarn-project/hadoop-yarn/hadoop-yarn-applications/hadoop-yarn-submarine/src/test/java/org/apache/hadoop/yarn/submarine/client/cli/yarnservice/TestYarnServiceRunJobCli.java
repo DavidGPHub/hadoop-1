@@ -77,8 +77,8 @@ public class TestYarnServiceRunJobCli {
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
-            "--input_path", "hdfs://input", "--checkpoint_path",
-            "hdfs://output", "--num_workers", "3", "--num_ps", "2",
+            "--input_path", "s3://input", "--checkpoint_path",
+            "s3://output", "--num_workers", "3", "--num_ps", "2",
             "--worker_launch_cmd", "python run-job.py", "--worker_resources",
             "memory=2048M,vcores=2", "--ps_resources", "memory=4096M,vcores=4",
             "--tensorboard", "true", "--ps_launch_cmd", "python run-ps.py",
@@ -122,8 +122,8 @@ public class TestYarnServiceRunJobCli {
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
-            "--input_path", "hdfs://input", "--checkpoint_path",
-            "hdfs://output", "--num_workers", "1", "--worker_launch_cmd",
+            "--input_path", "s3://input", "--checkpoint_path",
+            "s3://output", "--num_workers", "1", "--worker_launch_cmd",
             "python run-job.py", "--worker_resources", "memory=2G,vcores=2",
             "--tensorboard", "true", "--verbose" });
     Service serviceSpec = getServiceSpecFromJobSubmitter(
@@ -152,8 +152,8 @@ public class TestYarnServiceRunJobCli {
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
-            "--input_path", "hdfs://input", "--checkpoint_path",
-            "hdfs://output", "--num_workers", "1", "--worker_launch_cmd",
+            "--input_path", "s3://input", "--checkpoint_path",
+            "s3://output", "--num_workers", "1", "--worker_launch_cmd",
             "python run-job.py", "--worker_resources", "memory=2G,vcores=2",
             "--tensorboard", "true", "--verbose" });
     SubmarineStorage storage =
@@ -161,6 +161,6 @@ public class TestYarnServiceRunJobCli {
     Map<String, String> jobInfo = storage.getJobInfoByName("my-job");
     Assert.assertTrue(jobInfo.size() > 0);
     Assert.assertEquals(jobInfo.get(StorageKeyConstants.INPUT_PATH),
-        "hdfs://input");
+        "s3://input");
   }
 }

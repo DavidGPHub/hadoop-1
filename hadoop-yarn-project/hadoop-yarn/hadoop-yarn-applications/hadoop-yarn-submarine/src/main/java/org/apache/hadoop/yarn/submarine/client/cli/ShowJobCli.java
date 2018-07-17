@@ -83,7 +83,7 @@ public class ShowJobCli extends AbstractCli {
         jobInfo);
     printIfNotNull("Checkpoint Path", StorageKeyConstants.CHECKPOINT_PATH,
         jobInfo);
-    printIfNotNull("Run Parameters", StorageKeyConstants.RUN_PARAMETRS,
+    printIfNotNull("Run Parameters", StorageKeyConstants.JOB_RUN_ARGS,
         jobInfo);
   }
 
