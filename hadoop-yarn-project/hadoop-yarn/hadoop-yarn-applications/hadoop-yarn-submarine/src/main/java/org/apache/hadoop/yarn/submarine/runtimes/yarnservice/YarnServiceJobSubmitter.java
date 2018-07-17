@@ -28,8 +28,7 @@ import org.apache.hadoop.yarn.service.api.records.Resource;
 import org.apache.hadoop.yarn.service.api.records.ResourceInformation;
 import org.apache.hadoop.yarn.service.api.records.Service;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
-import org.apache.hadoop.yarn.submarine.client.cli.CliUtils;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
+import org.apache.hadoop.yarn.submarine.client.cli.param.RunJobParameters;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.Constants;
 import org.apache.hadoop.yarn.submarine.common.Envs;
@@ -80,7 +79,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     return serviceResource;
   }
 
-  private void addHdfsClassPathIfNeeded(JobRunParameters parameters,
+  private void addHdfsClassPathIfNeeded(RunJobParameters parameters,
       FileWriter fw) throws IOException {
     // Find envs to use HDFS
     String hdfsHome = null;
@@ -132,7 +131,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
   /*
    * Generate a command launch script on local disk, returns patch to the script
    */
-  private String generateCommandLaunchScript(JobRunParameters parameters,
+  private String generateCommandLaunchScript(RunJobParameters parameters,
       TaskType taskType) throws IOException {
     File file = File.createTempFile(taskType.name() + "-launch-script", ".sh");
     FileWriter fw = new FileWriter(file);
@@ -181,7 +180,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     return "run-" + taskType.name() + ".sh";
   }
 
-  private void handleLaunchCommand(JobRunParameters parameters,
+  private void handleLaunchCommand(RunJobParameters parameters,
       TaskType taskType, Component component) throws IOException {
     // Get staging area directory
     Path stagingDir =
@@ -214,7 +213,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
   }
 
   private void addWorkerComponent(Service service,
-      JobRunParameters parameters, TaskType taskType) throws IOException {
+      RunJobParameters parameters, TaskType taskType) throws IOException {
     Component workerComponent = new Component();
     addCommonEnvironments(workerComponent, taskType);
 
@@ -235,7 +234,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
   }
 
   // Handle worker and primary_worker.
-  private void addWorkerComponents(Service service, JobRunParameters parameters)
+  private void addWorkerComponents(Service service, RunJobParameters parameters)
       throws IOException {
     addWorkerComponent(service, parameters, TaskType.PRIMARY_WORKER);
 
@@ -244,7 +243,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     }
   }
 
-  private Service createServiceByParameters(JobRunParameters parameters)
+  private Service createServiceByParameters(RunJobParameters parameters)
       throws IOException {
     Service service = new Service();
     service.setName(parameters.getName());
@@ -286,7 +285,7 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
    * {@inheritDoc}
    */
   @Override
-  public ApplicationId submitJob(JobRunParameters parameters)
+  public ApplicationId submitJob(RunJobParameters parameters)
       throws IOException, YarnException {
     Service service = createServiceByParameters(parameters);
     ServiceClient serviceClient = YarnServiceUtils.createServiceClient(

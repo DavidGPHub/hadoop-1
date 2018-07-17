@@ -17,7 +17,6 @@ package org.apache.hadoop.yarn.submarine.runtimes.common;
 
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.fs.RemoteDirectoryManager;
@@ -45,7 +44,7 @@ public class FSBasedSubmarineStorageImpl extends SubmarineStorage {
   public void addNewJob(String jobName, Map<String, String> jobInfo)
       throws IOException {
     Path jobInfoPath = getJobInfoPath(jobName, true);
-    FSDataOutputStream fos = getFileSystem().create(jobInfoPath);
+    FSDataOutputStream fos = rdm.getFileSystem().create(jobInfoPath);
     serializeMap(fos, jobInfo);
   }
 
@@ -53,7 +52,7 @@ public class FSBasedSubmarineStorageImpl extends SubmarineStorage {
   public Map<String, String> getJobInfoByName(String jobName)
       throws IOException {
     Path jobInfoPath = getJobInfoPath(jobName, false);
-    FSDataInputStream fis = getFileSystem().open(jobInfoPath);
+    FSDataInputStream fis = rdm.getFileSystem().open(jobInfoPath);
     return deserializeMap(fis);
   }
 
@@ -61,7 +60,7 @@ public class FSBasedSubmarineStorageImpl extends SubmarineStorage {
   public void addNewModel(String modelName, String version,
       Map<String, String> modelInfo) throws IOException {
     Path modelInfoPath = getModelInfoPath(modelName, version, true);
-    FSDataOutputStream fos = getFileSystem().create(modelInfoPath);
+    FSDataOutputStream fos = rdm.getFileSystem().create(modelInfoPath);
     serializeMap(fos, modelInfo);
   }
 
@@ -69,7 +68,7 @@ public class FSBasedSubmarineStorageImpl extends SubmarineStorage {
   public Map<String, String> getModelInfoByName(String modelName,
       String version) throws IOException {
     Path modelInfoPath = getModelInfoPath(modelName, version, false);
-    FSDataInputStream fis = getFileSystem().open(modelInfoPath);
+    FSDataInputStream fis = rdm.getFileSystem().open(modelInfoPath);
     return deserializeMap(fis);
   }
 
@@ -78,11 +77,6 @@ public class FSBasedSubmarineStorageImpl extends SubmarineStorage {
     Path modelDir = rdm.getModelDir(modelName, create);
     Path modelInfo = new Path(modelDir, version + ".info");
     return modelInfo;
-  }
-
-
-  private FileSystem getFileSystem() throws IOException {
-    return FileSystem.get(clientContext.getYarnConfig());
   }
 
   private void serializeMap(FSDataOutputStream fos, Map<String, String> map)

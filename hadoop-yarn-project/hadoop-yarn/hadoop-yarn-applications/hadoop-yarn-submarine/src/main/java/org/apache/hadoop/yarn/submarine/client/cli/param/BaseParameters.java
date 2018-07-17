@@ -30,14 +30,11 @@ import java.io.IOException;
 public abstract class BaseParameters {
   private String name;
 
-  protected abstract void printUsages(Options options);
-
   public void updateParametersByParsedCommandline(CommandLine parsedCommandLine,
       Options options, ClientContext clientContext)
       throws ParseException, IOException, YarnException {
     String name = parsedCommandLine.getOptionValue(CliConstants.NAME);
     if (name == null) {
-      printUsages(options);
       throw new ParseException("--name is absent");
     }
 

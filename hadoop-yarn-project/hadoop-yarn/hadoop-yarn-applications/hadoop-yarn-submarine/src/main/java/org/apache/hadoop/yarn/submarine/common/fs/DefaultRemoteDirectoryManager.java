@@ -65,6 +65,11 @@ public class DefaultRemoteDirectoryManager implements RemoteDirectoryManager {
     return modelDir;
   }
 
+  @Override
+  public FileSystem getFileSystem() {
+    return fs;
+  }
+
   private Path getJobRootFolder(String jobName) throws IOException {
     return new Path(new Path("submarine", "jobs"), jobName);
   }

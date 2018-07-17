@@ -15,7 +15,6 @@
 package org.apache.hadoop.yarn.submarine.client.cli.param;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.yarn.api.records.Resource;
@@ -29,7 +28,7 @@ import java.io.IOException;
 /**
  * Parameters used to run a job
  */
-public class JobRunParameters extends RunParameters {
+public class RunJobParameters extends RunParameters {
   private String input;
   private String checkpointPath;
 
@@ -42,11 +41,6 @@ public class JobRunParameters extends RunParameters {
   private String psLaunchCmd;
 
   private boolean waitJobFinish = false;
-
-  @Override
-  public void printUsages(Options options) {
-    new HelpFormatter().printHelp("job run", options);
-  }
 
   @Override
   public void updateParametersByParsedCommandline(CommandLine parsedCommandLine,
@@ -70,7 +64,6 @@ public class JobRunParameters extends RunParameters {
     String workerResourceStr = parsedCommandLine.getOptionValue(
         CliConstants.WORKER_RES);
     if (workerResourceStr == null) {
-      printUsages(options);
       throw new ParseException("--" + CliConstants.WORKER_RES + " is absent.");
     }
     Resource workerResource = CliUtils.createResourceFromString(
@@ -81,7 +74,6 @@ public class JobRunParameters extends RunParameters {
     if (nPS > 0) {
       String psResourceStr = parsedCommandLine.getOptionValue(CliConstants.PS_RES);
       if (psResourceStr == null) {
-        printUsages(options);
         throw new ParseException("--" + CliConstants.PS_RES + " is absent.");
       }
       psResource = CliUtils.createResourceFromString(psResourceStr,
@@ -116,7 +108,7 @@ public class JobRunParameters extends RunParameters {
     return input;
   }
 
-  public JobRunParameters setInputPath(String input) {
+  public RunJobParameters setInputPath(String input) {
     this.input = input;
     return this;
   }
@@ -125,7 +117,7 @@ public class JobRunParameters extends RunParameters {
     return checkpointPath;
   }
 
-  public JobRunParameters setCheckpointPath(String checkpointPath) {
+  public RunJobParameters setCheckpointPath(String checkpointPath) {
     this.checkpointPath = checkpointPath;
     return this;
   }
@@ -134,7 +126,7 @@ public class JobRunParameters extends RunParameters {
     return numWorkers;
   }
 
-  public JobRunParameters setNumWorkers(int numWorkers) {
+  public RunJobParameters setNumWorkers(int numWorkers) {
     this.numWorkers = numWorkers;
     return this;
   }
@@ -143,7 +135,7 @@ public class JobRunParameters extends RunParameters {
     return numPS;
   }
 
-  public JobRunParameters setNumPS(int numPS) {
+  public RunJobParameters setNumPS(int numPS) {
     this.numPS = numPS;
     return this;
   }
@@ -152,7 +144,7 @@ public class JobRunParameters extends RunParameters {
     return workerResource;
   }
 
-  public JobRunParameters setWorkerResource(Resource workerResource) {
+  public RunJobParameters setWorkerResource(Resource workerResource) {
     this.workerResource = workerResource;
     return this;
   }
@@ -161,7 +153,7 @@ public class JobRunParameters extends RunParameters {
     return psResource;
   }
 
-  public JobRunParameters setPsResource(Resource psResource) {
+  public RunJobParameters setPsResource(Resource psResource) {
     this.psResource = psResource;
     return this;
   }
@@ -170,7 +162,7 @@ public class JobRunParameters extends RunParameters {
     return tensorboardEnabled;
   }
 
-  public JobRunParameters setTensorboardEnabled(boolean tensorboardEnabled) {
+  public RunJobParameters setTensorboardEnabled(boolean tensorboardEnabled) {
     this.tensorboardEnabled = tensorboardEnabled;
     return this;
   }
@@ -179,7 +171,7 @@ public class JobRunParameters extends RunParameters {
     return workerLaunchCmd;
   }
 
-  public JobRunParameters setWorkerLaunchCmd(String workerLaunchCmd) {
+  public RunJobParameters setWorkerLaunchCmd(String workerLaunchCmd) {
     this.workerLaunchCmd = workerLaunchCmd;
     return this;
   }
@@ -188,7 +180,7 @@ public class JobRunParameters extends RunParameters {
     return psLaunchCmd;
   }
 
-  public JobRunParameters setPSLaunchCmd(String psLaunchCmd) {
+  public RunJobParameters setPSLaunchCmd(String psLaunchCmd) {
     this.psLaunchCmd = psLaunchCmd;
     return this;
   }

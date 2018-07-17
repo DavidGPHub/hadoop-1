@@ -12,19 +12,7 @@
  * limitations under the License. See accompanying LICENSE file.
  */
 
-package org.apache.hadoop.yarn.submarine.common.fs;
+package org.apache.hadoop.yarn.submarine.client.cli.param;
 
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-
-import java.io.IOException;
-
-public interface RemoteDirectoryManager {
-  Path getJobStagingArea(String jobName, boolean create) throws IOException;
-
-  Path getJobCheckpointDir(String jobName, boolean create) throws IOException;
-
-  Path getModelDir(String modelName, boolean create) throws IOException;
-
-  FileSystem getFileSystem() throws IOException;
+public class ShowJobParameters extends BaseParameters {
 }

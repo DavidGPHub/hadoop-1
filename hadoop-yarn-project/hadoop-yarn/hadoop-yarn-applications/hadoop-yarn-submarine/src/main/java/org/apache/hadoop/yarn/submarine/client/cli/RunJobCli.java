@@ -17,24 +17,30 @@ package org.apache.hadoop.yarn.submarine.client.cli;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
+import org.apache.hadoop.yarn.submarine.client.cli.param.RunJobParameters;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobMonitor;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
 import org.apache.hadoop.yarn.submarine.runtimes.common.StorageKeyConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class RunJobCli extends AbstractCli {
+  private static final Logger LOG =
+      LoggerFactory.getLogger(RunJobCli.class);
+
   private Options options;
-  private JobRunParameters parameters = new JobRunParameters();
+  private RunJobParameters parameters = new RunJobParameters();
 
   private JobSubmitter jobSubmitter;
   private JobMonitor jobMonitor;
@@ -54,7 +60,7 @@ public class RunJobCli extends AbstractCli {
   }
 
   public void printUsages() {
-    parameters.printUsages(options);
+    new HelpFormatter().printHelp("job run", options);
   }
 
   private Options generateOptions() {
@@ -120,10 +126,16 @@ public class RunJobCli extends AbstractCli {
 
   private void parseCommandLineAndGetRunJobParameters(String[] args)
       throws ParseException, IOException, YarnException {
-    // Do parsing
-    GnuParser parser = new GnuParser();
-    CommandLine cli = parser.parse(options, args);
-    parameters.updateParametersByParsedCommandline(cli, options, clientContext);
+    try {
+      // Do parsing
+      GnuParser parser = new GnuParser();
+      CommandLine cli = parser.parse(options, args);
+      parameters.updateParametersByParsedCommandline(cli, options, clientContext);
+    } catch (ParseException e) {
+      LOG.error("Exception in parse:", e.getMessage());
+      printUsages();
+      throw e;
+    }
 
     // replace patterns
     replacePatternsInParameters();
@@ -172,7 +184,7 @@ public class RunJobCli extends AbstractCli {
   }
 
   @VisibleForTesting
-  JobRunParameters getRunJobParameters() {
+  RunJobParameters getRunJobParameters() {
     return parameters;
   }
 }

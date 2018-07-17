@@ -33,11 +33,6 @@ public class ModelServeParameters extends RunParameters {
   private String servingFramework;
 
   @Override
-  protected void printUsages(Options options) {
-    new HelpFormatter().printHelp("model serve", options);
-  }
-
-  @Override
   public void updateParametersByParsedCommandline(CommandLine parsedCommandLine,
       Options options, ClientContext clientContext)
       throws ParseException, IOException, YarnException {
@@ -50,7 +45,6 @@ public class ModelServeParameters extends RunParameters {
     String servingTaskResourceStr = parsedCommandLine.getOptionValue(
         CliConstants.SERVING_RES);
     if (servingTaskResourceStr == null) {
-      printUsages(options);
       throw new ParseException("--" + CliConstants.SERVING_RES + " is absent.");
     }
     servingTaskResource = CliUtils.createResourceFromString(

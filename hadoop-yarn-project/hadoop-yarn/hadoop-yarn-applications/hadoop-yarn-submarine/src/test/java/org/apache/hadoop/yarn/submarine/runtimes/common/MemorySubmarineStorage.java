@@ -36,7 +36,11 @@ public class MemorySubmarineStorage extends SubmarineStorage {
   @Override
   public synchronized Map<String, String> getJobInfoByName(String jobName)
       throws IOException {
-    return jobsInfo.get(jobName);
+    Map<String, String> info = jobsInfo.get(jobName);
+    if (info == null) {
+      throw new IOException("Failed to find job=" + jobName);
+    }
+    return info;
   }
 
   @Override
@@ -51,6 +55,20 @@ public class MemorySubmarineStorage extends SubmarineStorage {
   @Override
   public synchronized Map<String, String> getModelInfoByName(String modelName,
       String version) throws IOException {
-    return modelsInfo.get(modelName).get(version);
+
+    boolean notFound = false;
+    Map<String, String> info = null;
+    try {
+       info = modelsInfo.get(modelName).get(version);
+    } catch (NullPointerException e) {
+      notFound = true;
+    }
+
+    if (notFound || info == null) {
+      throw new IOException(
+          "Failed to find, model=" + modelName + " version=" + version);
+    }
+
+    return info;
   }
 }

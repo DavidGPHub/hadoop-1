@@ -21,6 +21,7 @@ public class CliConstants {
   public static final String RUN = "run";
   public static final String SERVE = "serve";
   public static final String LIST = "list";
+  public static final String SHOW = "show";
   public static final String NAME = "name";
   public static final String INPUT_PATH = "input_path";
   public static final String CHECKPOINT_PATH = "checkpoint_path";

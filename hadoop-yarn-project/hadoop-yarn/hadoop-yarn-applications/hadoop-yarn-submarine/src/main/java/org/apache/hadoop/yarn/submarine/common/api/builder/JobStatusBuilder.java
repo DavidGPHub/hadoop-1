@@ -15,20 +15,14 @@
 package org.apache.hadoop.yarn.submarine.common.api.builder;
 
 import org.apache.hadoop.yarn.service.api.records.Component;
-import org.apache.hadoop.yarn.service.api.records.Container;
-import org.apache.hadoop.yarn.service.api.records.ContainerState;
 import org.apache.hadoop.yarn.service.api.records.Service;
 import org.apache.hadoop.yarn.service.api.records.ServiceState;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
-import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.api.JobComponentStatus;
 import org.apache.hadoop.yarn.submarine.common.api.JobState;
 import org.apache.hadoop.yarn.submarine.common.api.JobStatus;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.apache.hadoop.yarn.submarine.common.Constants.WORKER_COMPONENT_NAME;
 
 public class JobStatusBuilder {
   public static JobStatus fromServiceSpec(Service serviceSpec) {
@@ -58,7 +52,7 @@ public class JobStatusBuilder {
 
 //  private static String getTensorboardLink(Service serviceSpec,
 //      ClientContext clientContext) {
-//    JobRunParameters jobRunParameters = clientContext.getRunJobParameters(
+//    RunJobParameters jobRunParameters = clientContext.getRunJobParameters(
 //        serviceSpec.getName());
 //    if (jobRunParameters == null || !jobRunParameters.isTensorboardEnabled()) {
 //      return null;

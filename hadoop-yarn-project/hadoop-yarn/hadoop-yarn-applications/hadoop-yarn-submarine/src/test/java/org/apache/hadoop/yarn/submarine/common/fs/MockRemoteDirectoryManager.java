@@ -18,26 +18,36 @@
 
 package org.apache.hadoop.yarn.submarine.common.fs;
 
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 import java.io.File;
 import java.io.IOException;
 
 public class MockRemoteDirectoryManager implements RemoteDirectoryManager {
-  private File stagingAreaLocal = null;
+  private File jobsParentDir = null;
+  private File modelParentDir = null;
 
   @Override
   public Path getJobStagingArea(String jobName, boolean create)
       throws IOException {
-    if (stagingAreaLocal == null && create) {
-      stagingAreaLocal = new File(
+    if (jobsParentDir == null && create) {
+      jobsParentDir = new File(
           "target/_staging_area_" + System.currentTimeMillis());
-      if (!stagingAreaLocal.mkdirs()) {
+      if (!jobsParentDir.mkdirs()) {
         throw new IOException(
-            "Failed to mkdirs for" + stagingAreaLocal.getAbsolutePath());
+            "Failed to mkdirs for" + jobsParentDir.getAbsolutePath());
       }
     }
-    return new Path(stagingAreaLocal.getAbsolutePath());
+
+    File jobDir = new File(jobsParentDir.getAbsolutePath(), jobName);
+    if (create && !jobDir.exists()) {
+      if (!jobDir.mkdirs()) {
+        throw new IOException("Failed to mkdirs for " + jobDir.getAbsolutePath());
+      }
+    }
+    return new Path(jobDir.getAbsolutePath());
   }
 
   @Override
@@ -48,6 +58,26 @@ public class MockRemoteDirectoryManager implements RemoteDirectoryManager {
 
   @Override
   public Path getModelDir(String modelName, boolean create) throws IOException {
-    return null;
+    if (modelParentDir == null && create) {
+      modelParentDir = new File(
+          "target/_models_" + System.currentTimeMillis());
+      if (!modelParentDir.mkdirs()) {
+        throw new IOException(
+            "Failed to mkdirs for " + modelParentDir.getAbsolutePath());
+      }
+    }
+
+    File modelDir = new File(modelParentDir.getAbsolutePath(), modelName);
+    if (create) {
+      if (!modelDir.exists() && !modelDir.mkdirs()) {
+        throw new IOException("Failed to mkdirs for " + modelDir.getAbsolutePath());
+      }
+    }
+    return new Path(modelDir.getAbsolutePath());
+  }
+
+  @Override
+  public FileSystem getFileSystem() throws IOException {
+    return FileSystem.getLocal(new Configuration());
   }
 }

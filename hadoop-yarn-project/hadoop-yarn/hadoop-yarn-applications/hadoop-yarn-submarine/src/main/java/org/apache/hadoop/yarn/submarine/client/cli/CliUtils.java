@@ -17,11 +17,10 @@ package org.apache.hadoop.yarn.submarine.client.cli;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceInformation;
 import org.apache.hadoop.yarn.api.records.ResourceTypeInfo;
-import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.exceptions.ResourceNotFoundException;
 import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.hadoop.yarn.submarine.client.cli.param.RunJobParameters;
 import org.apache.hadoop.yarn.submarine.common.fs.RemoteDirectoryManager;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.util.UnitsConversionUtil;
 import org.apache.hadoop.yarn.util.resource.ResourceUtils;
 
@@ -36,7 +35,7 @@ public class CliUtils {
    * @return launch command after pattern replace
    */
   public static String replacePatternsInLaunchCommand(String specifiedCli,
-      JobRunParameters jobRunParameters,
+      RunJobParameters jobRunParameters,
       RemoteDirectoryManager directoryManager) throws IOException {
     String jobDir = jobRunParameters.getCheckpointPath();
     if (null == jobDir) {

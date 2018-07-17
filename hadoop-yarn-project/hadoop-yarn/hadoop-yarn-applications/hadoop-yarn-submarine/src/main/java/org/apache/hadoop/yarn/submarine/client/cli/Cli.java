@@ -79,6 +79,8 @@ public class Cli {
       String subCmd = args[1];
       if (subCmd.equals(CliConstants.RUN)) {
         new RunJobCli(clientContext).run(moduleArgs);
+      } else if (subCmd.equals(CliConstants.SHOW)) {
+        new ShowJobCli(clientContext).run(moduleArgs);
       } else {
         throw new IllegalArgumentException("Unknown option for job");
       }

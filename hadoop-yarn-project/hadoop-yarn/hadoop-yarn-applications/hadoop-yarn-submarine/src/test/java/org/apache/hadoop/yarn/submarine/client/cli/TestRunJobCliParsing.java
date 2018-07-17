@@ -24,7 +24,7 @@ import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceInformation;
 import org.apache.hadoop.yarn.api.records.ResourceTypeInfo;
 import org.apache.hadoop.yarn.exceptions.YarnException;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
+import org.apache.hadoop.yarn.submarine.client.cli.param.RunJobParameters;
 import org.apache.hadoop.yarn.submarine.common.MockClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
 import org.apache.hadoop.yarn.submarine.runtimes.RuntimeFactory;
@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -66,7 +65,7 @@ public class TestRunJobCliParsing {
       throws IOException, YarnException {
     MockClientContext mockClientContext = new MockClientContext();
     JobSubmitter mockJobSubmitter = mock(JobSubmitter.class);
-    when(mockJobSubmitter.submitJob(any(JobRunParameters.class))).thenReturn(
+    when(mockJobSubmitter.submitJob(any(RunJobParameters.class))).thenReturn(
         ApplicationId.newInstance(1234L, 1));
     JobMonitor mockJobMonitor = mock(JobMonitor.class);
     SubmarineStorage storage = mock(SubmarineStorage.class);
@@ -94,7 +93,7 @@ public class TestRunJobCliParsing {
             "--ps_resources", "memory=4G,vcores=4", "--tensorboard", "true",
             "--ps_launch_cmd", "python run-ps.py", "--verbose" });
 
-    JobRunParameters jobRunParameters = runJobCli.getRunJobParameters();
+    RunJobParameters jobRunParameters = runJobCli.getRunJobParameters();
 
     Assert.assertEquals(jobRunParameters.getInputPath(), "hdfs://input");
     Assert.assertEquals(jobRunParameters.getCheckpointPath(), "hdfs://output");
@@ -123,7 +122,7 @@ public class TestRunJobCliParsing {
             "--worker_resources", "memory=4g,vcores=2", "--tensorboard",
             "true", "--verbose", "--wait_job_finish" });
 
-    JobRunParameters jobRunParameters = runJobCli.getRunJobParameters();
+    RunJobParameters jobRunParameters = runJobCli.getRunJobParameters();
 
     Assert.assertEquals(jobRunParameters.getInputPath(), "hdfs://input");
     Assert.assertEquals(jobRunParameters.getCheckpointPath(), "hdfs://output");

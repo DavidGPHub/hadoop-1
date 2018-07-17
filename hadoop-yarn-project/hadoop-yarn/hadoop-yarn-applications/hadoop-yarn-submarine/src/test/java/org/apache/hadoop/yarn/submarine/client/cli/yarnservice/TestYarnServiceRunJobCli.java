@@ -16,13 +16,14 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.yarn.submarine.client.cli;
+package org.apache.hadoop.yarn.submarine.client.cli.yarnservice;
 
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.api.records.Component;
 import org.apache.hadoop.yarn.service.api.records.Service;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
+import org.apache.hadoop.yarn.submarine.client.cli.RunJobCli;
 import org.apache.hadoop.yarn.submarine.common.Constants;
 import org.apache.hadoop.yarn.submarine.common.MockClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
@@ -57,28 +58,31 @@ public class TestYarnServiceRunJobCli {
 
   @Test
   public void testPrintHelp() {
-    MockClientContext mockClientContext = getMockClientContext();
+    MockClientContext mockClientContext =
+        YarnServiceCliTestUtils.getMockClientContext();
     RunJobCli runJobCli = new RunJobCli(mockClientContext);
     runJobCli.printUsages();
   }
 
   private Service getServiceSpecFromJobSubmitter(JobSubmitter jobSubmitter) {
-    return ((YarnServiceJobSubmitter)jobSubmitter).getServiceSpec();
+    return ((YarnServiceJobSubmitter) jobSubmitter).getServiceSpec();
   }
 
   @Test
   public void testBasicRunJobForDistributedTraining() throws Exception {
-    MockClientContext mockClientContext = getMockClientContext();
+    MockClientContext mockClientContext =
+        YarnServiceCliTestUtils.getMockClientContext();
     RunJobCli runJobCli = new RunJobCli(mockClientContext);
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
-            "--input_path", "hdfs://input", "--checkpoint_path", "hdfs://output",
-            "--num_workers", "3", "--num_ps", "2", "--worker_launch_cmd",
-            "python run-job.py", "--worker_resources", "memory=2048M,vcores=2",
-            "--ps_resources", "memory=4096M,vcores=4", "--tensorboard", "true",
-            "--ps_launch_cmd", "python run-ps.py", "--verbose" });
+            "--input_path", "hdfs://input", "--checkpoint_path",
+            "hdfs://output", "--num_workers", "3", "--num_ps", "2",
+            "--worker_launch_cmd", "python run-job.py", "--worker_resources",
+            "memory=2048M,vcores=2", "--ps_resources", "memory=4096M,vcores=4",
+            "--tensorboard", "true", "--ps_launch_cmd", "python run-ps.py",
+            "--verbose" });
     Service serviceSpec = getServiceSpecFromJobSubmitter(
         runJobCli.getJobSubmitter());
     Assert.assertEquals(3, serviceSpec.getComponents().size());
@@ -111,16 +115,17 @@ public class TestYarnServiceRunJobCli {
 
   @Test
   public void testBasicRunJobForSingleNodeTraining() throws Exception {
-    MockClientContext mockClientContext = getMockClientContext();
+    MockClientContext mockClientContext =
+        YarnServiceCliTestUtils.getMockClientContext();
     RunJobCli runJobCli = new RunJobCli(mockClientContext);
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
-            "--input_path", "hdfs://input", "--checkpoint_path", "hdfs://output",
-            "--num_workers", "1", "--worker_launch_cmd", "python run-job.py",
-            "--worker_resources", "memory=2G,vcores=2", "--tensorboard",
-            "true", "--verbose" });
+            "--input_path", "hdfs://input", "--checkpoint_path",
+            "hdfs://output", "--num_workers", "1", "--worker_launch_cmd",
+            "python run-job.py", "--worker_resources", "memory=2G,vcores=2",
+            "--tensorboard", "true", "--verbose" });
     Service serviceSpec = getServiceSpecFromJobSubmitter(
         runJobCli.getJobSubmitter());
     Assert.assertEquals(1, serviceSpec.getComponents().size());
@@ -140,30 +145,22 @@ public class TestYarnServiceRunJobCli {
 
   @Test
   public void testParameterStorageForTrainingJob() throws Exception {
-    MockClientContext mockClientContext = getMockClientContext();
+    MockClientContext mockClientContext =
+        YarnServiceCliTestUtils.getMockClientContext();
     RunJobCli runJobCli = new RunJobCli(mockClientContext);
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(
         new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
-            "--input_path", "hdfs://input", "--checkpoint_path", "hdfs://output",
-            "--num_workers", "1", "--worker_launch_cmd", "python run-job.py",
-            "--worker_resources", "memory=2G,vcores=2", "--tensorboard",
-            "true", "--verbose" });
+            "--input_path", "hdfs://input", "--checkpoint_path",
+            "hdfs://output", "--num_workers", "1", "--worker_launch_cmd",
+            "python run-job.py", "--worker_resources", "memory=2G,vcores=2",
+            "--tensorboard", "true", "--verbose" });
     SubmarineStorage storage =
         mockClientContext.getRuntimeFactory().getSubmarineStorage();
     Map<String, String> jobInfo = storage.getJobInfoByName("my-job");
     Assert.assertTrue(jobInfo.size() > 0);
     Assert.assertEquals(jobInfo.get(StorageKeyConstants.INPUT_PATH),
         "hdfs://input");
-  }
-
-  private MockClientContext getMockClientContext() {
-    MockClientContext mockClientContext = new MockClientContext();
-    RuntimeFactory runtimeFactory = new YarnServiceRuntimeFactory(
-        mockClientContext);
-    mockClientContext.setRuntimeFactory(runtimeFactory);
-    runtimeFactory.setSubmarineStorage(new MemorySubmarineStorage());
-    return mockClientContext;
   }
 }
