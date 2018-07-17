@@ -103,10 +103,12 @@ public class RunJobCli extends AbstractCli {
         "Print verbose log for troubleshooting");
     options.addOption(CliConstants.WAIT_JOB_FINISH, false,
         "Specified when user want to wait the job finish");
-    options.addOption(CliConstants.REMOTE_CONFIG_FOLDER, false,
-        "Configuration files like hdfs-site.xml/krb5.conf, etc. stored. "
-            + "Contents inside this folder will be downloaded to container's "
-            + "local directory before launch.");
+    options.addOption(CliConstants.PS_DOCKER_IMAGE, true,
+        "Specify docker image for PS, when this is not specified, PS uses --"
+            + CliConstants.DOCKER_IMAGE + " as default.");
+    options.addOption(CliConstants.WORKER_DOCKER_IMAGE, true,
+        "Specify docker image for WORKER, when this is not specified, WORKER "
+            + "uses --" + CliConstants.DOCKER_IMAGE + " as default.");
     return options;
   }
 

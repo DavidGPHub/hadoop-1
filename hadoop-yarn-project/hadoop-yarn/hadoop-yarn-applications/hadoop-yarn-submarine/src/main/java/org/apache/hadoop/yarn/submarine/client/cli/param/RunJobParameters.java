@@ -97,12 +97,6 @@ public class RunJobParameters extends RunParameters {
     String psLaunchCommand = parsedCommandLine.getOptionValue(
         CliConstants.PS_LAUNCH_CMD);
 
-    if (parsedCommandLine.getOptionValue(CliConstants.REMOTE_CONFIG_FOLDER)
-        != null) {
-      this.remoteConfigFolder = parsedCommandLine.getOptionValue(
-          CliConstants.REMOTE_CONFIG_FOLDER);
-    }
-
     this.setInputPath(input).setCheckpointPath(jobDir).setNumPS(nPS).setNumWorkers(nWorkers)
         .setPSLaunchCmd(psLaunchCommand).setWorkerLaunchCmd(workerLaunchCmd)
         .setPsResource(psResource).setWorkerResource(workerResource)
