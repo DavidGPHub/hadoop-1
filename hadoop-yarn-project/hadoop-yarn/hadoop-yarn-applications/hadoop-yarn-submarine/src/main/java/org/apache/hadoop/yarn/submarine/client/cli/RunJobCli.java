@@ -27,7 +27,6 @@ import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobMonitor;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
 import org.apache.hadoop.yarn.submarine.runtimes.common.StorageKeyConstants;
-import org.apache.hadoop.yarn.submarine.runtimes.common.SubmarineStorage;
 
 import java.io.IOException;
 import java.util.HashMap;
