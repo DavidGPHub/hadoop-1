@@ -18,6 +18,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.api.ServiceApiConstants;
 import org.apache.hadoop.yarn.service.api.records.Artifact;
@@ -159,31 +160,17 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     // Print launch command
     if (taskType.equals(TaskType.WORKER) || taskType.equals(
         TaskType.PRIMARY_WORKER)) {
-      String afterReplace = CliUtils.replacePatternsInLaunchCommand(
-          parameters.getWorkerLaunchCmd(), parameters,
-          clientContext.getRemoteDirectoryManager());
-
-      fw.append(afterReplace + '\n');
+      fw.append(parameters.getWorkerLaunchCmd() + '\n');
 
       if (SubmarineLogs.isVerbose()) {
-        LOG.info("Worker command before commandline replace=[" + parameters
-            .getWorkerLaunchCmd() + "] after replace=[" + afterReplace + "]");
+        LOG.info("Worker command =[" + parameters.getWorkerLaunchCmd() + "]");
       }
-
-      parameters.setWorkerLaunchCmd(afterReplace);
     } else if (taskType.equals(TaskType.PS)) {
-      String afterReplace = CliUtils.replacePatternsInLaunchCommand(
-          parameters.getPSLaunchCmd(), parameters,
-          clientContext.getRemoteDirectoryManager());
+      fw.append(parameters.getPSLaunchCmd() + '\n');
 
       if (SubmarineLogs.isVerbose()) {
-        LOG.info("PS command before commandline replace=[" + parameters
-            .getPSLaunchCmd() + "] after replace=[" + afterReplace + "]");
+        LOG.info("PS command =[" + parameters.getPSLaunchCmd() + "]");
       }
-
-      fw.append(afterReplace + '\n');
-
-      parameters.setPSLaunchCmd(afterReplace);
     }
 
     fw.close();
@@ -198,8 +185,8 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
       TaskType taskType, Component component) throws IOException {
     // Get staging area directory
     Path stagingDir =
-        clientContext.getRemoteDirectoryManager().getAndCreateJobStagingArea(
-            parameters.getName());
+        clientContext.getRemoteDirectoryManager().getJobStagingArea(
+            parameters.getName(), true);
 
     // Generate script file in the local disk
     String localScriptFile = generateCommandLaunchScript(parameters, taskType);
@@ -296,21 +283,18 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
   }
 
   /**
-   * Run a job by given parameters, returns when job sucessfully submitted to
-   * RM.
-   * @param parameters parameters
-   * @throws IOException
-   * @throws YarnException
+   * {@inheritDoc}
    */
   @Override
-  public void submitJob(JobRunParameters parameters)
+  public ApplicationId submitJob(JobRunParameters parameters)
       throws IOException, YarnException {
     Service service = createServiceByParameters(parameters);
     ServiceClient serviceClient = YarnServiceUtils.createServiceClient(
         clientContext.getYarnConfig());
-    serviceClient.actionCreate(service);
+    ApplicationId appid = serviceClient.actionCreate(service);
     serviceClient.stop();
     this.serviceSpec = service;
+    return appid;
   }
 
   @VisibleForTesting

@@ -23,7 +23,7 @@ import java.io.IOException;
 
 /**
  * Manages remote directories for staging, log, etc.
- * TODO, need to properly handle permission
+ * TODO, need to properly handle permission / name validation, etc.
  */
 public class DefaultRemoteDirectoryManager implements RemoteDirectoryManager {
   FileSystem fs;
@@ -37,22 +37,36 @@ public class DefaultRemoteDirectoryManager implements RemoteDirectoryManager {
   }
 
   @Override
-  public Path getAndCreateJobStagingArea(String jobName) throws IOException {
+  public Path getJobStagingArea(String jobName, boolean create) throws IOException {
     Path staging = new Path(getJobRootFolder(jobName), "staging");
-    createFolderIfNotExist(staging);
+    if (create) {
+      createFolderIfNotExist(staging);
+    }
     return staging;
   }
 
   @Override
-  public Path getAndCreateJobCheckpointDir(String jobName) throws IOException {
-    Path jobDir = new Path(getAndCreateJobStagingArea(jobName),
+  public Path getJobCheckpointDir(String jobName, boolean create)
+      throws IOException {
+    Path jobDir = new Path(getJobStagingArea(jobName, create),
         CliConstants.CHECKPOINT_PATH);
-    createFolderIfNotExist(jobDir);
+    if (create) {
+      createFolderIfNotExist(jobDir);
+    }
     return jobDir;
   }
 
+  @Override
+  public Path getModelDir(String modelName, boolean create) throws IOException {
+    Path modelDir = new Path(new Path("submarine", "models"), modelName);
+    if (create) {
+      createFolderIfNotExist(modelDir);
+    }
+    return modelDir;
+  }
+
   private Path getJobRootFolder(String jobName) throws IOException {
-    return new Path("submarine", jobName);
+    return new Path(new Path("submarine", "jobs"), jobName);
   }
 
   private void createFolderIfNotExist(Path path) throws IOException {
@@ -61,11 +75,5 @@ public class DefaultRemoteDirectoryManager implements RemoteDirectoryManager {
         throw new IOException("Failed to create folder=" + path);
       }
     }
-  }
-
-  private Path getAndCreateJobRootFolder(String jobName) throws IOException {
-    Path root = getJobRootFolder(jobName);
-    createFolderIfNotExist(root);
-    return root;
   }
 }

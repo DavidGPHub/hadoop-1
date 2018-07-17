@@ -1,15 +1,23 @@
 package org.apache.hadoop.yarn.submarine.runtimes;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineConfiguration;
 import org.apache.hadoop.yarn.submarine.common.exception.SubmarineRuntimeException;
+import org.apache.hadoop.yarn.submarine.runtimes.common.FSBasedSubmarineStorageImpl;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobMonitor;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
+import org.apache.hadoop.yarn.submarine.runtimes.common.SubmarineStorage;
+import org.apache.hadoop.yarn.submarine.runtimes.yarnservice.YarnServiceJobMonitor;
+import org.apache.hadoop.yarn.submarine.runtimes.yarnservice.YarnServiceJobSubmitter;
 
 import java.lang.reflect.InvocationTargetException;
 
 public abstract class RuntimeFactory {
   protected ClientContext clientContext;
+  private JobSubmitter jobSubmitter;
+  private JobMonitor jobMonitor;
+  private SubmarineStorage submarineStorage;
 
   public RuntimeFactory(ClientContext clientContext) {
     this.clientContext = clientContext;
@@ -39,7 +47,45 @@ public abstract class RuntimeFactory {
     }
   }
 
-  public abstract JobSubmitter getJobSubmitterInstance();
+  protected abstract JobSubmitter internalCreateJobSubmitter();
 
-  public abstract JobMonitor getJobMonitorInstance();
+  protected abstract JobMonitor internalCreateJobMonitor();
+
+  protected abstract SubmarineStorage internalCreateSubmarineStorage();
+
+  public synchronized JobSubmitter getJobSubmitterInstance() {
+    if (jobSubmitter == null) {
+      jobSubmitter = internalCreateJobSubmitter();
+    }
+    return jobSubmitter;
+  }
+
+  public synchronized JobMonitor getJobMonitorInstance() {
+    if (jobMonitor == null) {
+      jobMonitor = internalCreateJobMonitor();
+    }
+    return jobMonitor;
+  }
+
+  public synchronized SubmarineStorage getSubmarineStorage() {
+    if (submarineStorage == null) {
+      submarineStorage = internalCreateSubmarineStorage();
+    }
+    return submarineStorage;
+  }
+
+  @VisibleForTesting
+  public synchronized void setJobSubmitterInstance(JobSubmitter jobSubmitter) {
+    this.jobSubmitter = jobSubmitter;
+  }
+
+  @VisibleForTesting
+  public synchronized void setJobMonitorInstance(JobMonitor jobMonitor) {
+    this.jobMonitor = jobMonitor;
+  }
+
+  @VisibleForTesting
+  public synchronized void setSubmarineStorage(SubmarineStorage storage) {
+    this.submarineStorage = storage;
+  }
 }

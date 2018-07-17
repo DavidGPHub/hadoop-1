@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.yarn.submarine.client.cli;
 
+import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.service.api.records.Component;
 import org.apache.hadoop.yarn.service.api.records.Service;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
@@ -26,6 +28,9 @@ import org.apache.hadoop.yarn.submarine.common.MockClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
 import org.apache.hadoop.yarn.submarine.runtimes.RuntimeFactory;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
+import org.apache.hadoop.yarn.submarine.runtimes.common.MemorySubmarineStorage;
+import org.apache.hadoop.yarn.submarine.runtimes.common.StorageKeyConstants;
+import org.apache.hadoop.yarn.submarine.runtimes.common.SubmarineStorage;
 import org.apache.hadoop.yarn.submarine.runtimes.yarnservice.YarnServiceJobSubmitter;
 import org.apache.hadoop.yarn.submarine.runtimes.yarnservice.YarnServiceRuntimeFactory;
 import org.apache.hadoop.yarn.submarine.runtimes.yarnservice.YarnServiceUtils;
@@ -33,13 +38,21 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.util.Map;
+
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestYarnServiceRunJobCli {
   @Before
-  public void before() {
+  public void before() throws IOException, YarnException {
     SubmarineLogs.verboseOff();
-    YarnServiceUtils.setStubServiceClient(mock(ServiceClient.class));
+    ServiceClient serviceClient = mock(ServiceClient.class);
+    when(serviceClient.actionCreate(any(Service.class))).thenReturn(
+        ApplicationId.newInstance(1234L, 1));
+    YarnServiceUtils.setStubServiceClient(serviceClient);
   }
 
   @Test
@@ -125,13 +138,32 @@ public class TestYarnServiceRunJobCli {
     // TODO, ADD TEST TO USE SERVICE CLIENT TO VALIDATE THE JSON SPEC
   }
 
+  @Test
+  public void testParameterStorageForTrainingJob() throws Exception {
+    MockClientContext mockClientContext = getMockClientContext();
+    RunJobCli runJobCli = new RunJobCli(mockClientContext);
+    Assert.assertFalse(SubmarineLogs.isVerbose());
+
+    runJobCli.run(
+        new String[] { "--name", "my-job", "--docker_image", "tf-docker:1.1.0",
+            "--input_path", "hdfs://input", "--checkpoint_path", "hdfs://output",
+            "--num_workers", "1", "--worker_launch_cmd", "python run-job.py",
+            "--worker_resources", "memory=2G,vcores=2", "--tensorboard",
+            "true", "--verbose" });
+    SubmarineStorage storage =
+        mockClientContext.getRuntimeFactory().getSubmarineStorage();
+    Map<String, String> jobInfo = storage.getJobInfoByName("my-job");
+    Assert.assertTrue(jobInfo.size() > 0);
+    Assert.assertEquals(jobInfo.get(StorageKeyConstants.INPUT_PATH),
+        "hdfs://input");
+  }
+
   private MockClientContext getMockClientContext() {
     MockClientContext mockClientContext = new MockClientContext();
     RuntimeFactory runtimeFactory = new YarnServiceRuntimeFactory(
         mockClientContext);
     mockClientContext.setRuntimeFactory(runtimeFactory);
+    runtimeFactory.setSubmarineStorage(new MemorySubmarineStorage());
     return mockClientContext;
   }
-
-
 }

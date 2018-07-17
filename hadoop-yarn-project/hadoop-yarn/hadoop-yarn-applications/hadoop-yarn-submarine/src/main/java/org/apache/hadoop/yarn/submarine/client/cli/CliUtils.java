@@ -40,8 +40,8 @@ public class CliUtils {
       RemoteDirectoryManager directoryManager) throws IOException {
     String jobDir = jobRunParameters.getCheckpointPath();
     if (null == jobDir) {
-      jobDir = directoryManager.getAndCreateJobCheckpointDir(
-          jobRunParameters.getName()).toString();
+      jobDir = directoryManager.getJobCheckpointDir(
+          jobRunParameters.getName(), true).toString();
     }
 
     String input = jobRunParameters.getInputPath();

@@ -19,24 +19,32 @@
 
 package org.apache.hadoop.yarn.submarine.client.cli;
 
+import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.api.records.ResourceInformation;
 import org.apache.hadoop.yarn.api.records.ResourceTypeInfo;
+import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
 import org.apache.hadoop.yarn.submarine.common.MockClientContext;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
+import org.apache.hadoop.yarn.submarine.runtimes.RuntimeFactory;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobMonitor;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
+import org.apache.hadoop.yarn.submarine.runtimes.common.SubmarineStorage;
 import org.apache.hadoop.yarn.util.resource.ResourceUtils;
 import org.apache.hadoop.yarn.util.resource.Resources;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class TestRunJobCliParsing {
   @Before
@@ -54,13 +62,27 @@ public class TestRunJobCliParsing {
     runJobCli.printUsages();
   }
 
-  @Test
-  public void testBasicRunJobForDistributedTraining() throws Exception {
+  private MockClientContext getMockClientContext()
+      throws IOException, YarnException {
     MockClientContext mockClientContext = new MockClientContext();
     JobSubmitter mockJobSubmitter = mock(JobSubmitter.class);
+    when(mockJobSubmitter.submitJob(any(JobRunParameters.class))).thenReturn(
+        ApplicationId.newInstance(1234L, 1));
     JobMonitor mockJobMonitor = mock(JobMonitor.class);
-    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter,
-        mockJobMonitor);
+    SubmarineStorage storage = mock(SubmarineStorage.class);
+    RuntimeFactory rtFactory = mock(RuntimeFactory.class);
+
+    when(rtFactory.getJobSubmitterInstance()).thenReturn(mockJobSubmitter);
+    when(rtFactory.getJobMonitorInstance()).thenReturn(mockJobMonitor);
+    when(rtFactory.getSubmarineStorage()).thenReturn(storage);
+
+    mockClientContext.setRuntimeFactory(rtFactory);
+    return mockClientContext;
+  }
+
+  @Test
+  public void testBasicRunJobForDistributedTraining() throws Exception {
+    RunJobCli runJobCli = new RunJobCli(getMockClientContext());
 
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
@@ -91,11 +113,7 @@ public class TestRunJobCliParsing {
 
   @Test
   public void testBasicRunJobForSingleNodeTraining() throws Exception {
-    MockClientContext mockClientContext = new MockClientContext();
-    JobSubmitter mockJobSubmitter = mock(JobSubmitter.class);
-    JobMonitor mockJobMonitor = mock(JobMonitor.class);
-    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter,
-        mockJobMonitor);
+    RunJobCli runJobCli = new RunJobCli(getMockClientContext());
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(
@@ -120,11 +138,7 @@ public class TestRunJobCliParsing {
 
   @Test
   public void testLaunchCommandPatternReplace() throws Exception {
-    MockClientContext mockClientContext = new MockClientContext();
-    JobSubmitter mockJobSubmitter = mock(JobSubmitter.class);
-    JobMonitor mockJobMonitor = mock(JobMonitor.class);
-    RunJobCli runJobCli = new RunJobCli(mockClientContext, mockJobSubmitter,
-        mockJobMonitor);
+    RunJobCli runJobCli = new RunJobCli(getMockClientContext());
     Assert.assertFalse(SubmarineLogs.isVerbose());
 
     runJobCli.run(

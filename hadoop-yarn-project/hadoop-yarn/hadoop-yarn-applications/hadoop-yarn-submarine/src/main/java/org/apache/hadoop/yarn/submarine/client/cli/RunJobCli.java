@@ -19,14 +19,19 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
+import org.apache.hadoop.yarn.submarine.common.ClientContext;
 import org.apache.hadoop.yarn.submarine.common.exception.SubmarineException;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobMonitor;
 import org.apache.hadoop.yarn.submarine.runtimes.common.JobSubmitter;
-import org.apache.hadoop.yarn.submarine.common.ClientContext;
-import org.apache.hadoop.yarn.submarine.client.cli.param.JobRunParameters;
-import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.hadoop.yarn.submarine.runtimes.common.StorageKeyConstants;
+import org.apache.hadoop.yarn.submarine.runtimes.common.SubmarineStorage;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RunJobCli extends AbstractCli {
   private Options options;
@@ -125,12 +130,38 @@ public class RunJobCli extends AbstractCli {
     replacePatternsInParameters();
   }
 
+  private void storeJobInformation(String jobName, ApplicationId applicationId,
+      String[] args) throws IOException {
+    Map<String, String> jobInfo = new HashMap<>();
+    jobInfo.put(StorageKeyConstants.JOB_NAME, jobName);
+    jobInfo.put(StorageKeyConstants.APPLICATION_ID, applicationId.toString());
+
+    if (parameters.getCheckpointPath() != null) {
+      jobInfo.put(StorageKeyConstants.CHECKPOINT_PATH,
+          parameters.getCheckpointPath());
+    }
+    if (parameters.getInputPath() != null) {
+      jobInfo.put(StorageKeyConstants.INPUT_PATH,
+          parameters.getInputPath());
+    }
+    if (parameters.getSavedModelPath() != null) {
+      jobInfo.put(StorageKeyConstants.SAVED_MODEL_PATH,
+          parameters.getSavedModelPath());
+    }
+
+    String joinedArgs = String.join(",", args);
+    jobInfo.put(StorageKeyConstants.JOB_RUN_ARGS, joinedArgs);
+    clientContext.getRuntimeFactory().getSubmarineStorage().addNewJob(jobName,
+        jobInfo);
+  }
+
   @Override
   public void run(String[] args)
       throws ParseException, IOException, YarnException, InterruptedException,
       SubmarineException {
     parseCommandLineAndGetRunJobParameters(args);
-    this.jobSubmitter.submitJob(parameters);
+    ApplicationId applicationId = this.jobSubmitter.submitJob(parameters);
+    storeJobInformation(parameters.getName(), applicationId, args);
     if (parameters.isWaitJobFinish()) {
       this.jobMonitor.waitTrainingFinal(parameters.getName());
     }

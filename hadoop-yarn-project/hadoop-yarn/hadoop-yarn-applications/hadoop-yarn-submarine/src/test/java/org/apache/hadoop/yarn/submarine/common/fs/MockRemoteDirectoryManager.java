@@ -27,9 +27,9 @@ public class MockRemoteDirectoryManager implements RemoteDirectoryManager {
   private File stagingAreaLocal = null;
 
   @Override
-  public synchronized Path getAndCreateJobStagingArea(String jobName)
+  public Path getJobStagingArea(String jobName, boolean create)
       throws IOException {
-    if (stagingAreaLocal == null) {
+    if (stagingAreaLocal == null && create) {
       stagingAreaLocal = new File(
           "target/_staging_area_" + System.currentTimeMillis());
       if (!stagingAreaLocal.mkdirs()) {
@@ -41,8 +41,13 @@ public class MockRemoteDirectoryManager implements RemoteDirectoryManager {
   }
 
   @Override
-  public Path getAndCreateJobCheckpointDir(String jobName) throws IOException {
-    Path stagingArea = new Path(getAndCreateJobStagingArea(jobName), "job_dir");
-    return stagingArea;
+  public Path getJobCheckpointDir(String jobName, boolean create)
+      throws IOException {
+    return null;
+  }
+
+  @Override
+  public Path getModelDir(String modelName, boolean create) throws IOException {
+    return null;
   }
 }

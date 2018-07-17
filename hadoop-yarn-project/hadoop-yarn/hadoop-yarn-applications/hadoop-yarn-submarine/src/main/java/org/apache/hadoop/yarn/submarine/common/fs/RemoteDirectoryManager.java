@@ -19,7 +19,9 @@ import org.apache.hadoop.fs.Path;
 import java.io.IOException;
 
 public interface RemoteDirectoryManager {
-  Path getAndCreateJobStagingArea(String jobName) throws IOException;
+  Path getJobStagingArea(String jobName, boolean create) throws IOException;
 
-  Path getAndCreateJobCheckpointDir(String jobName) throws IOException;
+  Path getJobCheckpointDir(String jobName, boolean create) throws IOException;
+
+  Path getModelDir(String modelName, boolean create) throws IOException;
 }
