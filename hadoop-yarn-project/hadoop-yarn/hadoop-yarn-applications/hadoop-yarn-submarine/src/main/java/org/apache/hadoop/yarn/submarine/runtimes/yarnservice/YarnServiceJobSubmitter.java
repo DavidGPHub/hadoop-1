@@ -30,7 +30,6 @@ import org.apache.hadoop.yarn.service.api.records.Service;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
 import org.apache.hadoop.yarn.submarine.client.cli.param.RunJobParameters;
 import org.apache.hadoop.yarn.submarine.common.ClientContext;
-import org.apache.hadoop.yarn.submarine.common.Constants;
 import org.apache.hadoop.yarn.submarine.common.Envs;
 import org.apache.hadoop.yarn.submarine.common.api.TaskType;
 import org.apache.hadoop.yarn.submarine.common.conf.SubmarineLogs;
@@ -176,6 +175,12 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     }
   }
 
+  private void addCommonEnvironments(Component component, TaskType taskType) {
+    Map<String, String> envs = component.getConfiguration().getEnv();
+    envs.put(Envs.TASK_INDEX_ENV, ServiceApiConstants.COMPONENT_ID);
+    envs.put(Envs.TASK_TYPE_ENV, taskType.name());
+  }
+
   /*
    * Generate a command launch script on local disk, returns patch to the script
    */
@@ -188,10 +193,6 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
 
     addHdfsClassPathIfNeeded(parameters, fw, comp);
 
-    // TODO, for distributed training
-    // 1) need to check DNS entry name
-    // 2) need to check how COMPONENT_ID passed to containers.
-
     // For primary_worker
     if (taskType == TaskType.PRIMARY_WORKER) {
       // Do we need tensorboard?
@@ -202,6 +203,17 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
             "tensorboard --port " + tensorboardPort + " --logdir " + parameters
                 .getCheckpointPath() + " &\n");
       }
+    }
+
+    // When distributed training is required
+    if (parameters.isDistributed()) {
+      // Generated TF_CONFIG
+      String tfConfigEnv = YarnServiceUtils.getTFConfigEnv(
+          taskType.getComponentName(), parameters.getNumWorkers(),
+          parameters.getNumPS(), parameters.getName(),
+          System.getProperty("user.name"),
+          clientContext.getYarnConfig().get("hadoop.registry.dns.domain-name"));
+      fw.append("export TF_CONFIG=\"" + tfConfigEnv + "\"\n");
     }
 
     // Print launch command
@@ -305,24 +317,23 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     component.setLaunchCommand("./" + destScriptFileName);
   }
 
-  private void addCommonEnvironments(Component component, TaskType taskType) {
-    Map<String, String> envs = component.getConfiguration().getEnv();
-    envs.put(Envs.TASK_INDEX_ENV, ServiceApiConstants.COMPONENT_ID);
-    envs.put(Envs.TASK_TYPE_ENV, taskType.name());
-  }
-
   private void addWorkerComponent(Service service,
       RunJobParameters parameters, TaskType taskType) throws IOException {
     Component workerComponent = new Component();
     addCommonEnvironments(workerComponent, taskType);
 
+    workerComponent.setName(taskType.getComponentName());
+
     if (taskType.equals(TaskType.PRIMARY_WORKER)) {
-      workerComponent.setName(Constants.PRIMARY_WORKER_COMPONENT_NAME);
       workerComponent.setNumberOfContainers(1L);
     } else{
-      workerComponent.setName(Constants.WORKER_COMPONENT_NAME);
       workerComponent.setNumberOfContainers(
           (long) parameters.getNumWorkers() - 1);
+    }
+
+    if (parameters.getWorkerDockerImage() != null) {
+      workerComponent.setArtifact(
+          getDockerArtifact(parameters.getWorkerDockerImage()));
     }
 
     workerComponent.setResource(
@@ -388,13 +399,16 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
     }
   }
 
+  private Artifact getDockerArtifact(String dockerImageName) {
+    return new Artifact().type(Artifact.TypeEnum.DOCKER).id(dockerImageName);
+  }
+
   private Service createServiceByParameters(RunJobParameters parameters)
       throws IOException {
     Service service = new Service();
     service.setName(parameters.getName());
     service.setVersion(String.valueOf(System.currentTimeMillis()));
-    service.setArtifact(new Artifact().type(Artifact.TypeEnum.DOCKER)
-        .id(parameters.getDockerImageName()));
+    service.setArtifact(getDockerArtifact(parameters.getDockerImageName()));
 
     handleServiceEnvs(service, parameters);
 
@@ -402,12 +416,18 @@ public class YarnServiceJobSubmitter implements JobSubmitter {
 
     if (parameters.getNumPS() > 0) {
       Component psComponent = new Component();
-      psComponent.setName(Constants.PS_COMPONENT_NAME);
+      psComponent.setName(TaskType.PS.getComponentName());
       addCommonEnvironments(psComponent, TaskType.PS);
       psComponent.setNumberOfContainers((long) parameters.getNumPS());
       psComponent.setRestartPolicy(Component.RestartPolicyEnum.NEVER);
       psComponent.setResource(
           getServiceResourceFromYarnResource(parameters.getPsResource()));
+
+      // Override global docker image if needed.
+      if (parameters.getPsDockerImage() != null) {
+        psComponent.setArtifact(
+            getDockerArtifact(parameters.getPsDockerImage()));
+      }
       handleLaunchCommand(parameters, TaskType.PS, psComponent);
       service.addComponent(psComponent);
     }

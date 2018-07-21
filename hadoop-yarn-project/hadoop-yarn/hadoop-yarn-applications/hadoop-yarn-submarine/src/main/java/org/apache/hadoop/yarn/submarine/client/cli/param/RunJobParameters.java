@@ -40,9 +40,11 @@ public class RunJobParameters extends RunParameters {
   private String workerLaunchCmd;
   private String psLaunchCmd;
 
-  private boolean waitJobFinish = false;
+  private String psDockerImage = null;
+  private String workerDockerImage = null;
 
-  private String remoteConfigFolder;
+  private boolean waitJobFinish = false;
+  private boolean distributed = false;
 
   @Override
   public void updateParametersByParsedCommandline(CommandLine parsedCommandLine,
@@ -61,6 +63,15 @@ public class RunJobParameters extends RunParameters {
     if (parsedCommandLine.getOptionValue(CliConstants.N_PS) != null) {
       nPS = Integer.parseInt(
           parsedCommandLine.getOptionValue(CliConstants.N_PS));
+    }
+
+    // Check #workers and #ps.
+    // When distributed training is required
+    if (nWorkers >= 2 && nPS > 0) {
+      distributed = true;
+    } else if (nWorkers == 1 && nPS > 0) {
+      throw new ParseException("Only specified one worker but non-zero PS, "
+          + "please double check.");
     }
 
     String workerResourceStr = parsedCommandLine.getOptionValue(
@@ -91,6 +102,11 @@ public class RunJobParameters extends RunParameters {
     if (parsedCommandLine.hasOption(CliConstants.WAIT_JOB_FINISH)) {
       this.waitJobFinish = true;
     }
+
+    psDockerImage = parsedCommandLine.getOptionValue(
+        CliConstants.PS_DOCKER_IMAGE);
+    workerDockerImage = parsedCommandLine.getOptionValue(
+        CliConstants.WORKER_DOCKER_IMAGE);
 
     String workerLaunchCmd = parsedCommandLine.getOptionValue(
         CliConstants.WORKER_LAUNCH_CMD);
@@ -191,7 +207,16 @@ public class RunJobParameters extends RunParameters {
     return waitJobFinish;
   }
 
-  public String getRemoteConfigFolder() {
-    return remoteConfigFolder;
+
+  public String getPsDockerImage() {
+    return psDockerImage;
+  }
+
+  public String getWorkerDockerImage() {
+    return workerDockerImage;
+  }
+
+  public boolean isDistributed() {
+    return distributed;
   }
 }

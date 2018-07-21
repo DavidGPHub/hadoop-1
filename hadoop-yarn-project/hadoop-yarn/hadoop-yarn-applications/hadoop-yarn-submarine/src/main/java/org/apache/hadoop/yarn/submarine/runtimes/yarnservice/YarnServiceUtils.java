@@ -17,6 +17,7 @@ package org.apache.hadoop.yarn.submarine.runtimes.yarnservice;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.service.client.ServiceClient;
+import org.apache.hadoop.yarn.submarine.common.Envs;
 
 public class YarnServiceUtils {
   // This will be true only in UT.
@@ -37,5 +38,41 @@ public class YarnServiceUtils {
   @VisibleForTesting
   public static void setStubServiceClient(ServiceClient stubServiceClient) {
     YarnServiceUtils.stubServiceClient = stubServiceClient;
+  }
+
+  public static String getTFConfigEnv(String curCommponentName, int nWorkers,
+      int nPs, String serviceName, String userName, String domain) {
+    String commonEndpointSuffix =
+        "." + serviceName + "." + userName + "." + domain + ":8000";
+
+    String json = "{\\\"cluster\\\":{";
+
+    String master = getComponentArrayJson("master", 1, commonEndpointSuffix)
+        + ",";
+    String worker = getComponentArrayJson("worker", nWorkers - 1,
+        commonEndpointSuffix) + ",";
+    String ps = getComponentArrayJson("ps", nPs, commonEndpointSuffix) + "},";
+
+    String task =
+        "\\\"task\\\":{" + " \\\"type\\\":\\\"" + curCommponentName + "\\\","
+            + " \\\"index\\\":" + '$' + Envs.TASK_INDEX_ENV + "},";
+    String environment = "\\\"environment\\\":\\\"cloud\\\"}";
+
+    return json + master + worker + ps + task + environment;
+  }
+
+  private static String getComponentArrayJson(String componentName, int count,
+      String endpointSuffix) {
+    String component = "\\\"" + componentName + "\\\":";
+    String array = "[";
+    for (int i = 0; i < count; i++) {
+      array = array + "\\\"" + componentName + "-" + i
+          + endpointSuffix + "\\\"";
+      if (i != count - 1) {
+        array = array + ",";
+      }
+    }
+    array = array + "]";
+    return component + array;
   }
 }

@@ -15,8 +15,18 @@
 package org.apache.hadoop.yarn.submarine.common.api;
 
 public enum TaskType {
-  PRIMARY_WORKER,
-  WORKER,
-  PS,
-  TENSORBOARD,
+  PRIMARY_WORKER("master"),
+  WORKER("worker"),
+  PS("ps"),
+  TENSORBOARD("tensorboard");
+
+  private String compName;
+
+  TaskType(String compName) {
+    this.compName = compName;
+  }
+
+  public String getComponentName() {
+    return compName;
+  }
 }
